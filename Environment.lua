@@ -1576,25 +1576,40 @@ end
     end
 
     local files = {}
-    local success, err = pcall(function()
-        for file in lfs.dir(directory) do
-            if file ~= "." and file ~= ".." then
-                table.insert(files, file)
-            end
-        end
+
+    -- Ensure to handle potential errors in a safe manner
+    local success, result = pcall(function()
+        -- Replace with the actual file listing function if not `listfiles`
+        return listfiles(directory)
     end)
 
     if not success then
-        print("Error listing files:", err)
+        print("Error listing files:", result)  -- `result` contains the error message in case of failure
         return
     end
 
-    for _, file in ipairs(files) do
-        print(file)
+    -- Check if the result is a valid table before trying to get its length
+    if type(result) ~= "table" then
+        print("Unexpected result type. Expected a table, got:", type(result))
+        return
+    end
+
+    -- Process the files list
+    for _, file in ipairs(result) do
+        table.insert(files, file)
+    end
+
+    if #files == 0 then
+        print("No files found or directory might be empty.")
+    else
+        for _, file in ipairs(files) do
+            print(file)
+        end
     end
 
     return files
 end)
+
 	nezur.add_global({"getinstances"}, function()
 		return game:GetDescendants()
 	end)

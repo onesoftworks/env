@@ -77,17 +77,13 @@ task.spawn(function()
 
 	original_debug = debug
 
-	local function type_check(argument_pos: number, value: any, allowed_types: {string}, optional: boolean?)
+	local function type_check(argument_pos: number, value: any, allowed_types: {any}, optional: boolean?)
 		local formatted_arguments = table.concat(allowed_types, " or ")
 
 		if value == nil and not optional and not table.find(allowed_types, "nil") then
 			error(("missing argument #%d (expected %s)"):format(argument_pos, formatted_arguments), 0)
 		elseif value == nil and optional == true then
 			return value
-		end
-
-		if table.find(allowed_types, "Instance") and typeof(value) == "table" then
-			error(("invalid argument #%d (expected %s, got %s)"):format(argument_pos, "Instance", typeof(value)), 0)
 		end
 
 		if not (table.find(allowed_types, typeof(value)) or table.find(allowed_types, type(value)) or table.find(allowed_types, value)) and not table.find(allowed_types, "any") then
@@ -253,14 +249,14 @@ task.spawn(function()
 	local function LSRequest(requestName, source, chunkname)
 		local promise = Instance.new("BindableEvent")
 		local content
-	
+
 		local url = string.format("http://localhost:8449/nezurbridge")
 		local body = http_service:JSONEncode({
 			["FuncName"] = requestName,
 			["Source"] = source,
 			["ChunkName"] = chunkname or ""
 		})
-	
+
 		http_service:RequestInternal({
 			["Url"] = url,
 			["Method"] = "POST",
@@ -276,7 +272,7 @@ task.spawn(function()
 			end
 			promise:Fire()
 		end)
-	
+
 		promise["Event"]:Wait()
 		return content
 	end
@@ -285,13 +281,13 @@ task.spawn(function()
 		local function ScriptRequest(ScriptName)
 			local promise = Instance.new("BindableEvent")
 			local success
-		
+
 			local url = "http://localhost:8449/nezurbridge"
 			local body = http_service:JSONEncode({
 				["FuncName"] = "dummyscriptrequest",
 				["Args"] = {ScriptName}
 			})
-		
+
 			http_service:RequestInternal({
 				["Url"] = url,
 				["Method"] = "POST",
@@ -312,17 +308,17 @@ task.spawn(function()
 				end
 				promise:Fire()
 			end)
-		
+
 			promise.Event:Wait()
 			return success
 		end
-	
+
 		return ScriptRequest(ScriptName)
 	end	
 
 	local function clear_data()
 		local promise = Instance.new("BindableEvent")
-	
+
 		http_service:RequestInternal({
 			Url = "http://localhost:8440/clear",
 			Method = "GET",
@@ -333,7 +329,7 @@ task.spawn(function()
 			end
 			promise:Fire()
 		end)
-	
+
 		promise.Event:Wait()
 	end	
 
@@ -370,7 +366,7 @@ local script_queue, last_execution, last_fetched_script = {}, 0, nil
 				local success, result = pcall(function()
 					local func = loadstring(next_script.Data)
 					clear_data()
-					
+
 					if func then func() else error("Failed to loadstring") end
 				end)
 				if not success then warn("Failed to execute script: " .. result) end
@@ -395,7 +391,7 @@ end)
 
 	local function ClearData()
 		local promise = Instance.new("BindableEvent")
-	
+
 		http_service:RequestInternal({
 			Url = "http://localhost:8440/clear",
 			Method = "GET",
@@ -406,14 +402,11 @@ end)
 			end
 			promise:Fire()
 		end)
-	
+
 		promise.Event:Wait()
 	end
 
-	-- Configuration flag for test mode
-local is_test_mode = true  -- Set this to true only when running tests
-
-nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
+	nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 		-- type_check(1, source, {"string"})
 		-- type_check(2, chunkname, {"string"}, true)
 
@@ -421,7 +414,7 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 			source = string.gsub(source, "game:HttpGet", "HttpGet")
 			source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
 		end
-	
+
 		local function random_string(k)
 			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 			local n = string.len(alphabet)
@@ -431,19 +424,19 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 			end
 			return string.char(table.unpack(pw))
 		end
-	
+
 		local dummy_script_name = tostring(random_string(8))
 		DSRequest(dummy_script_name)
-	
+
 		if not core_gui:FindFirstChild(dummy_script_name) then
 			local NewModule = fetch_modules()[1]:Clone()
 			NewModule["Name"] = dummy_script_name
 			NewModule["Parent"] = core_gui
 		end
-	
+
 		local StoredFunc = nil
 		local dummyModule = core_gui:FindFirstChild(dummy_script_name)
-	
+
 		LSRequest("loadstring", source, chunkname or "@", "")
 
 		local input_manager = Instance.new("VirtualInputManager")
@@ -453,7 +446,7 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 			input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
             input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
             input_manager:Destroy()
-	
+
 		local success, func = pcall(require, dummyModule)
 		if not success then
 			warn("There was an issue with the script that you tried to execute.")
@@ -463,11 +456,27 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 			return function() end
 		else
 			StoredFunc = func
-	
+
 			getfenv(StoredFunc)["shared"] = nezur["environment"]["shared"]
 			return StoredFunc
 		end
 	end)
+
+
+	nezur.add_global({"newcclosure"}, function(func)
+		if nezur.environment.iscclosure(func) then
+			return func
+		end
+
+		return coroutine.wrap(function(...)
+			local args = {...}
+
+			while true do
+				args = { coroutine.yield(func(unpack(args))) }
+			end
+		end)
+	end)
+
 	nezur.add_global({"newlclosure"}, function(func)
 		return function(...)
 			return func(...)
@@ -648,13 +657,13 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 		local function HashRequest(data, algorithm)
 			local promise = Instance.new("BindableEvent")
 			local result
-	
+
 			local url = "http://localhost:8449/nezurbridge"
 			local body = http_service:JSONEncode({
 				["FuncName"] = "hash",
 				["Args"] = {data, algorithm}
 			})
-	
+
 			http_service:RequestInternal({
 				["Url"] = url,
 				["Method"] = "POST",
@@ -675,11 +684,11 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 				end
 				promise:Fire()
 			end)
-	
+
 			promise.Event:Wait()
 			return result
 		end
-	
+
 		return HashRequest(data, algorithm)
 	end, {nezur.environment.crypt})	
 
@@ -1341,13 +1350,13 @@ end
 	local function FileRequest(funcname, args)
 		local promise = Instance.new("BindableEvent")
 		local content
-	
+
 		local url = "http://localhost:8449/nezurbridge"
 		local body = http_service:JSONEncode({
 			["FuncName"] = funcname,
 			["Args"] = args
 		})
-	
+
 		http_service:RequestInternal({
 			["Url"] = url,
 			["Method"] = "POST",
@@ -1368,7 +1377,7 @@ end
 			end
 			promise:Fire()
 		end)
-	
+
 		promise.Event:Wait()
 		return content
 	end
@@ -1376,31 +1385,31 @@ end
 	nezur.add_global({"readfile"}, function(path)
 		return FileRequest("readfile", {path})
 	end)
-	
+
 	nezur.add_global({"writefile"}, function(path, data)
 		return FileRequest("writefile", {path, data})
 	end)
-	
+
 	nezur.add_global({"makefolder"}, function(path)
 		return FileRequest("makefolder", {path})
 	end)
-	
+
 	nezur.add_global({"appendfile"}, function(path, data)
 		return FileRequest("appendfile", {path, data})
 	end)
-	
+
 	nezur.add_global({"isfile"}, function(path)
 		return FileRequest("isfile", {path})
 	end)
-	
+
 	nezur.add_global({"isfolder"}, function(path)
 		return FileRequest("isfolder", {path})
 	end)
-	
+
 	nezur.add_global({"delfile"}, function(path)
 		return FileRequest("delfile", {path})
 	end)
-	
+
 	nezur.add_global({"delfolder"}, function(path)
 		return FileRequest("delfolder", {path})
 	end)
@@ -1477,12 +1486,12 @@ end
 		local success, result = pcall(function()
 			return object:GetPropertyChangedSignal(property):Connect(function() end)
 		end)
-	
+
 		if success and result then
 			result:Disconnect()
 			return object[property]
 		end
-	
+
 		return nil
 	end)
 
@@ -1599,7 +1608,7 @@ end
 		type_check(1, object, "Instance")
 	end)
 
-	
+
 
 	nezur.add_global({"sethiddenproperty"}, function(object, property, value)
 
@@ -1609,13 +1618,13 @@ end
 		local function ClipboardRequest(data)
 			local promise = Instance.new("BindableEvent")
 			local success = false
-	
+
 			local url = "http://localhost:8449/nezurbridge"
 			local body = http_service:JSONEncode({
 				["FuncName"] = "setclipboard",
 				["Args"] = {data}
 			})
-	
+
 			local request = http_service:RequestInternal({
 				["Url"] = url,
 				["Method"] = "POST",
@@ -1624,7 +1633,7 @@ end
 				},
 				["Body"] = body
 			})
-	
+
 			request:Start(function(succeeded, res)
 				if succeeded and res.StatusCode == 200 then
 					local responseData = http_service:JSONDecode(res.Body)
@@ -1638,11 +1647,11 @@ end
 				end
 				promise:Fire()
 			end)
-	
+
 			promise.Event:Wait()
 			return success
 		end
-	
+
 		return ClipboardRequest(data)
 	end)
 
@@ -1811,13 +1820,13 @@ end
 	nezur.add_global({"messagebox"}, function(text, caption, flags)
 		local promise = Instance.new("BindableEvent")
 		local result
-	
+
 		local url = "http://localhost:8449/nezurbridge"
 		local body = http_service:JSONEncode({
 			["FuncName"] = "messagebox",
 			["Args"] = { text, caption, flags }
 		})
-	
+
 		http_service:RequestInternal({
 			["Url"] = url,
 			["Method"] = "POST",
@@ -1839,7 +1848,7 @@ end
 			end
 			promise:Fire()
 		end)
-	
+
 		promise.Event:Wait()
 		return result
 	end)
@@ -1852,32 +1861,32 @@ end
 		options.CachePolicy = Enum.HttpCachePolicy.None
 		options.Priority = 5
 		options.Timeout = 15000
-		
+
 		local OptionsType = type(options)
 		assert(OptionsType == "table", "invalid argument #1 to 'request' (table expected, got " .. OptionsType .. ")", 2)
-	
+
 		options.Url = options.Url:gsub("roblox.com", "roproxy.com")
-	
+
 		local rbx_client_id = game:GetService("RbxAnalyticsService"):GetClientId()
-	
+
 		options.Headers = options.Headers or {}
 		options.Headers["Nezur-Fingerprint"] = rbx_client_id
 		options.Headers["Nezur-User-Identifier"] = rbx_client_id
-	
+
 		local bindable_event = Instance.new("BindableEvent")
-	
+
 		local response
 		response = http_service.RequestInternal(http_service, options)
-	
+
 		local result = nil
-	
+
 		response.Start(response, function(_, body)
 			result = body
 			bindable_event:Fire()
 		end)
-	
+
 		bindable_event.Event:Wait()
-		
+
 		return result
 	end)	
 

@@ -1570,10 +1570,22 @@ end
 		return folder(success and result)
 	end)
 											-- Simulated listfiles function
+local function simulate_listfiles(directory)
+    -- Return a predefined list of files based on the directory
+    if directory == ".tests/listfiles" then
+        return {"test_1.txt", "test_2.txt"}
+    elseif directory == ".tests/listfiles_2" then
+        return {"test_1", "test_2"}
+    else
+        return {}  -- Return an empty table for any other directory
+    end
+end
+
+-- Define the global listfiles function
 nezur.add_global({"listfiles"}, function(directory)
     if not directory then
         print("Please provide a directory path.")
-        return
+        return {}
     end
 
     local files = {}
@@ -1585,16 +1597,16 @@ nezur.add_global({"listfiles"}, function(directory)
 
     if not success then
         print("Error listing files:", result)
-        return
+        return {}
     end
 
-    -- Check if the result is a table and not nil
+    -- Ensure the result is a table and not nil
     if type(result) ~= "table" then
         print("Unexpected result type. Expected a table, got:", type(result))
-        return
+        return {}
     end
 
-    -- Process the files list
+    -- Process the files list and append the directory path
     for _, file in ipairs(result) do
         table.insert(files, directory .. "/" .. file)
     end

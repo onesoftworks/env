@@ -410,6 +410,7 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
     if type(source) ~= "string" then
         error("Source must be a string")
     end
+
     -- Optional: Check chunkname type
     if chunkname and type(chunkname) ~= "string" then
         error("Chunkname must be a string")
@@ -420,11 +421,13 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
     source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
 
     -- Prevent execution of bytecode or precompiled code
+    -- Check for patterns commonly associated with bytecode
     if string.match(source, "^[%s]*local[%s]+[a-zA-Z_][a-zA-Z0-9_]*[%s]*=[%s]*function") then
         warn("Bytecode or precompiled code detected. Execution is not allowed.")
         return function() end
     end
 
+    -- Create a unique script name to avoid conflicts
     local function random_string(k)
         local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         local n = string.len(alphabet)
@@ -436,29 +439,46 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
     end
 
     local dummy_script_name = tostring(random_string(8))
-    DSRequest(dummy_script_name)
 
-    if not core_gui:FindFirstChild(dummy_script_name) then
-        local NewModule = fetch_modules()[1]:Clone()
-        NewModule["Name"] = dummy_script_name
-        NewModule["Parent"] = core_gui
+    -- Ensure that the dummy script is correctly managed
+    local function manage_dummy_script()
+        DSRequest(dummy_script_name)
+
+        if not core_gui:FindFirstChild(dummy_script_name) then
+            local NewModule = fetch_modules()[1]:Clone()
+            NewModule["Name"] = dummy_script_name
+            NewModule["Parent"] = core_gui
+        end
     end
+
+    manage_dummy_script()
 
     local StoredFunc = nil
     local dummyModule = core_gui:FindFirstChild(dummy_script_name)
 
-    -- Mock call to LSRequest (ensure it does not execute the code)
-    LSRequest("loadstring", source, chunkname or "@", "")
+    -- Ensure the LSRequest function does not execute the code directly
+    local success, _ = pcall(function()
+        LSRequest("loadstring", source, chunkname or "@", "")
+    end)
 
-    local input_manager = Instance.new("VirtualInputManager")
-    input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
-    input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
-    task.wait()
-    input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
-    input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
-    input_manager:Destroy()
+    -- Simulate the behavior of VirtualInputManager
+    local function simulate_input_events()
+        local input_manager = Instance.new("VirtualInputManager")
+        input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+        input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+        task.wait()
+        input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+        input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+        input_manager:Destroy()
+    end
 
-    local success, func = pcall(require, dummyModule)
+    simulate_input_events()
+
+    -- Attempt to require the module and handle errors
+    local success, func = pcall(function()
+        return require(dummyModule)
+    end)
+
     if not success then
         warn("There was an issue with the script that you tried to execute.")
         pcall(function()
@@ -473,7 +493,6 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
         return StoredFunc
     end
 end)
-
 
 	nezur.add_global({"newcclosure"}, function(func)
 		if nezur.environment.iscclosure(func) then

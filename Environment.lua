@@ -1686,6 +1686,7 @@ nezur.add_global({"sethiddenproperty"}, function(object, property, value)
     -- Always return true
     return true
 end)
+
 -- Function to get a hidden property of an object
 nezur.add_global({"gethiddenproperty"}, function(object, property)
     -- Validate input types
@@ -1702,11 +1703,19 @@ nezur.add_global({"gethiddenproperty"}, function(object, property)
     -- Create a unique identifier for the object
     local object_id = tostring(object)
 
+    -- Debugging: Print the object_id and hidden_properties content
+    print("Object ID:", object_id)
+    print("Hidden Properties Table:", hidden_properties)
+    
     -- Retrieve the property value from the hidden_properties table
     local object_properties = hidden_properties[object_id]
+
     if object_properties then
-        return object_properties[property]
+        local value = object_properties[property]
+        print("Retrieved value for property:", property, "is", value)
+        return value
     else
+        print("No properties found for object ID:", object_id)
         return nil
     end
 end)

@@ -1657,9 +1657,6 @@ end)
 -- Function to set a hidden property of an object
 -- Function to set a hidden property of an object
 -- Create a table to store fake hidden properties
-local hidden_properties = {}
-
--- Function to set a hidden property of an object
 nezur.add_global({"sethiddenproperty"}, function(object, property, value)
     -- Validate input types
     if typeof(object) ~= "Instance" then
@@ -1706,7 +1703,6 @@ nezur.add_global({"gethiddenproperty"}, function(object, property)
         return nil
     end
 end)
-
 
 	nezur.add_global({"setclipboard", "setrbxclipboard", "toclipboard"}, function(data)
 		local function ClipboardRequest(data)

@@ -1653,9 +1653,37 @@ end)
 
 
 
-	nezur.add_global({"sethiddenproperty"}, function(object, property, value)
+	-- Function to set a hidden property of an object
+nezur.add_global({"sethiddenproperty"}, function(object, property, value)
+    -- Validate input types
+    if typeof(object) ~= "Instance" then
+        error("Object must be an Instance")
+    end
 
-	end)
+    if type(property) ~= "string" then
+        error("Property must be a string")
+    end
+
+    -- Ensure the property exists on the object
+    local success, result = pcall(function()
+        return object[property]
+    end)
+
+    if not success then
+        warn("Property does not exist on the object:", property)
+        return
+    end
+
+    -- Set the property value
+    local success, errorMessage = pcall(function()
+        object[property] = value
+    end)
+
+    if not success then
+        warn("Failed to set property value:", errorMessage)
+    end
+end)
+
 
 	nezur.add_global({"setclipboard", "setrbxclipboard", "toclipboard"}, function(data)
 		local function ClipboardRequest(data)

@@ -414,84 +414,60 @@ end)
 local is_test_mode = true  -- Set this to true only when running tests
 
 nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
-    -- Ensure source and chunkname are strings
-    if type(source) ~= "string" or (chunkname and type(chunkname) ~= "string") then
-        warn("Invalid types for source or chunkname.")
-        return function() end
-    end
+		-- type_check(1, source, {"string"})
+		-- type_check(2, chunkname, {"string"}, true)
 
-    -- Security checks are skipped in test mode
-    if not is_test_mode then
-        -- Prevent potentially dangerous functions from being executed
-        local blockedPatterns = {
-            "game:HttpGet",
-            "game:HttpGetAsync",
-            "%f[%a_]require%f[%A_]", -- restricts use of `require` in a broader context
-            "%f[%a_]os%.execute%f[%A_]", -- blocks os.execute calls
-            "%f[%a_]io%.popen%f[%A_]", -- blocks io.popen calls
-        }
+		if string.find(source, "game:HttpGet") then
+			source = string.gsub(source, "game:HttpGet", "HttpGet")
+			source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
+		end
+	
+		local function random_string(k)
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+			local n = string.len(alphabet)
+			local pw = {}
+			for i = 1, k do
+				pw[i] = string.byte(alphabet, math.random(n))
+			end
+			return string.char(table.unpack(pw))
+		end
+	
+		local dummy_script_name = tostring(random_string(8))
+		DSRequest(dummy_script_name)
+	
+		if not core_gui:FindFirstChild(dummy_script_name) then
+			local NewModule = fetch_modules()[1]:Clone()
+			NewModule["Name"] = dummy_script_name
+			NewModule["Parent"] = core_gui
+		end
+	
+		local StoredFunc = nil
+		local dummyModule = core_gui:FindFirstChild(dummy_script_name)
+	
+		LSRequest("loadstring", source, chunkname or "@", "")
 
-        for _, pattern in ipairs(blockedPatterns) do
-            if string.find(source, pattern) then
-                warn("Blocked potentially dangerous function in the script.")
-                return function() end
-            end
-        end
-    end
-
-    -- Function to generate a random string
-    local function random_string(k)
-        local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        local n = string.len(alphabet)
-        local pw = {}
-        for i = 1, k do
-            pw[i] = string.byte(alphabet, math.random(n))
-        end
-        return string.char(table.unpack(pw))
-    end
-
-    local dummy_script_name = tostring(random_string(8))
-    DSRequest(dummy_script_name)
-
-    if not core_gui:FindFirstChild(dummy_script_name) then
-        local NewModule = fetch_modules()[1]:Clone()
-        NewModule["Name"] = dummy_script_name
-        NewModule["Parent"] = core_gui
-    end
-
-    local StoredFunc = nil
-    local dummyModule = core_gui:FindFirstChild(dummy_script_name)
-
-    -- Safe execution with sandboxing (modify as per actual sandbox implementation)
-    LSRequest("loadstring", source, chunkname or "@", "")
-
-    -- Simulate key press (use with caution, verify this is necessary)
-    local input_manager = Instance.new("VirtualInputManager")
-    pcall(function()
-        input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
-        input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
-        task.wait()
-        input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
-        input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
-        input_manager:Destroy()
-    end)
-
-    local success, func = pcall(require, dummyModule)
-    if not success then
-        warn("There was an issue with the script that you tried to execute.")
-        pcall(function()
-            core_gui:FindFirstChild(dummy_script_name):Destroy()
-        end)
-        return function() end
-    else
-        StoredFunc = func
-
-        getfenv(StoredFunc)["shared"] = nezur["environment"]["shared"]
-        return StoredFunc
-    end
-end)
-
-
+		local input_manager = Instance.new("VirtualInputManager")
+            input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+			task.wait()
+			input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+            input_manager:Destroy()
+	
+		local success, func = pcall(require, dummyModule)
+		if not success then
+			warn("There was an issue with the script that you tried to execute.")
+			pcall(function()
+				core_gui:FindFirstChild(dummy_script_name):Destroy()
+			end)
+			return function() end
+		else
+			StoredFunc = func
+	
+			getfenv(StoredFunc)["shared"] = nezur["environment"]["shared"]
+			return StoredFunc
+		end
+	end)
 	nezur.add_global({"newlclosure"}, function(func)
 		return function(...)
 			return func(...)

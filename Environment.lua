@@ -1482,30 +1482,22 @@ end
 
 
 	nezur.add_global({"getcallbackvalue"}, function(object, property)
-    -- Validate input types
-    if typeof(object) ~= "Instance" then
-        warn("Object must be an Instance")
-        return nil
-    end
+		local success, result = pcall(function()
+			return object:GetPropertyChangedSignal(property):Connect(function() end)
+		end)
 
-    if type(property) ~= "string" then
-        warn("Property must be a string")
-        return nil
-    end
+		if success and result then
+			result:Disconnect()
+			return object[property]
+		end
 
-    -- Attempt to retrieve the property value
-    local success, value = pcall(function()
-        return object[property]
-    end)
+		return nil
+	end)
 
-    -- Return the value if retrieval was successful, otherwise return nil
-    if success then
-        return value
-    else
-        return nil
-    end
-end)
-
+	nezur.add_global({"getconnections"}, function()
+		local v3 = task.spawn(function()
+			return "Notimpl"
+		end)
 
 		return {
 			[1] = { 

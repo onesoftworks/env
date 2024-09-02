@@ -1569,9 +1569,38 @@ end
 
 		return folder(success and result)
 	end)
-											nezur.add_global({"listfiles"}, function()
-		
-	end)
+											nezur.add_global({"listfiles"}, function(directory)
+    -- Ensure the directory parameter is provided
+    if not directory then
+        print("Please provide a directory path.")
+        return
+    end
+
+    -- List files in the specified directory
+    local files = {}
+    
+    -- Attempt to open the directory and iterate over files
+    local success, err = pcall(function()
+        for _, file in ipairs(listfiles(directory)) do
+            table.insert(files, file)
+        end
+    end)
+    
+    -- Handle potential errors
+    if not success then
+        print("Error listing files:", err)
+        return
+    end
+
+    -- Print or return the list of files
+    for _, file in ipairs(files) do
+        print(file)  -- This line prints the file names
+    end
+
+    -- Return the list if needed
+    return files
+end)
+
 
 
 	nezur.add_global({"getinstances"}, function()

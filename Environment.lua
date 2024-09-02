@@ -1576,19 +1576,19 @@ end
     end
 
     local files = {}
-
-    -- Safely call the listfiles function and handle errors
+    
+    -- Attempt to list files using the simulated function or actual method
     local success, result = pcall(function()
-        -- Replace 'listfiles' with the correct function for your environment
-        return listfiles(directory)
+        -- Replace `simulate_listfiles` with `listfiles` or actual function if available
+        return simulate_listfiles(directory)  -- or listfiles(directory)
     end)
 
     if not success then
-        print("Error calling listfiles function:", result)  -- result contains the error message
+        print("Error listing files:", result)
         return
     end
 
-    -- Check if the result is a table
+    -- Check if the result is a table and not nil
     if type(result) ~= "table" then
         print("Unexpected result type. Expected a table, got:", type(result))
         return
@@ -1608,8 +1608,6 @@ end
 
     return files
 end)
-
-
 	nezur.add_global({"getinstances"}, function()
 		return game:GetDescendants()
 	end)

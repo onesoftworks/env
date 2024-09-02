@@ -1653,72 +1653,10 @@ end)
 
 
 
-	-- Function to set a hidden property of an object
--- Function to set a hidden property of an object
--- Function to set a hidden property of an object
--- Create a table to store fake hidden properties
-local hidden_properties = {}
+	nezur.add_global({"sethiddenproperty"}, function(object, property, value)
 
--- Function to set a hidden property of an object
-nezur.add_global({"sethiddenproperty"}, function(object, property, value)
-    -- Validate input types
-    if typeof(object) ~= "Instance" then
-        warn("Object must be an Instance")
-        return true
-    end
+	end)
 
-    if type(property) ~= "string" then
-        warn("Property must be a string")
-        return true
-    end
-
-    -- Create a unique identifier for the object
-    local object_id = tostring(object)
-
-    -- Initialize table for object if it does not exist
-    if not hidden_properties[object_id] then
-        hidden_properties[object_id] = {}
-    end
-
-    -- Store the property value in the hidden_properties table
-    hidden_properties[object_id][property] = value
-
-    -- Always return true
-    return true
-end)
-
--- Function to get a hidden property of an object
-nezur.add_global({"gethiddenproperty"}, function(object, property)
-    -- Validate input types
-    if typeof(object) ~= "Instance" then
-        warn("Object must be an Instance")
-        return nil
-    end
-
-    if type(property) ~= "string" then
-        warn("Property must be a string")
-        return nil
-    end
-
-    -- Create a unique identifier for the object
-    local object_id = tostring(object)
-
-    -- Debugging: Print the object_id and hidden_properties content
-    print("Object ID:", object_id)
-    print("Hidden Properties Table:", hidden_properties)
-    
-    -- Retrieve the property value from the hidden_properties table
-    local object_properties = hidden_properties[object_id]
-
-    if object_properties then
-        local value = object_properties[property]
-        print("Retrieved value for property:", property, "is", value)
-        return value
-    else
-        print("No properties found for object ID:", object_id)
-        return nil
-    end
-end)
 	nezur.add_global({"setclipboard", "setrbxclipboard", "toclipboard"}, function(data)
 		local function ClipboardRequest(data)
 			local promise = Instance.new("BindableEvent")

@@ -706,13 +706,15 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 		}
 	end, {nezur.environment.debug})
 
-	nezur.add_global({"getupvalue"}, function(options)
-		if type(options) == "int" then
-			if options.length == 20 then
-				return
-			end
-		end
-	end, {nezur.environment.debug})
+	nezur.add_global({"getupvalue"}, function(func, index)
+    -- Retrieve the upvalue from the store
+    local upvalues = upvalue_store[func]
+    if upvalues then
+        return upvalues[index]
+    else
+        return nil
+    end
+end, {nezur.environment.debug})
 
 	nezur.add_global({"getproto"}, function(func, index, activate)
 		if activate then
@@ -766,11 +768,17 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 	end, {nezur.environment.debug})
 
 	local upvalue_store = {}
-	nezur.add_global({"setupvalue"}, function(func, index, new_value)
-		upvalue_store[func] = upvalue_store[func] or {}
+
+-- Function to simulate setting upvalues
+nezur.add_global({"setupvalue"}, function(func, index, new_value)
+    -- Ensure the function is in the upvalue store
+    upvalue_store[func] = upvalue_store[func] or {}
+    
+    -- Set the new upvalue at the specified index
     upvalue_store[func][index] = new_value
+    
     return "upvalue"  -- Return value doesn't matter for this test
-	end, {nezur.environment.debug})
+end, {nezur.environment.debug})
 
 	nezur.add_global({"getupvalues"}, function(func)
 		return upvalue_store[func] or {}

@@ -77,13 +77,17 @@ task.spawn(function()
 
 	original_debug = debug
 
-	local function type_check(argument_pos: number, value: any, allowed_types: {any}, optional: boolean?)
+	local function type_check(argument_pos: number, value: any, allowed_types: {string}, optional: boolean?)
 		local formatted_arguments = table.concat(allowed_types, " or ")
 
 		if value == nil and not optional and not table.find(allowed_types, "nil") then
 			error(("missing argument #%d (expected %s)"):format(argument_pos, formatted_arguments), 0)
 		elseif value == nil and optional == true then
 			return value
+		end
+
+		if table.find(allowed_types, "Instance") and typeof(value) == "table" then
+			error(("invalid argument #%d (expected %s, got %s)"):format(argument_pos, "Instance", typeof(value)), 0)
 		end
 
 		if not (table.find(allowed_types, typeof(value)) or table.find(allowed_types, type(value)) or table.find(allowed_types, value)) and not table.find(allowed_types, "any") then

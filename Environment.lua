@@ -1569,7 +1569,7 @@ end
 
 		return folder(success and result)
 	end)
-											test("listfiles", {}, function()
+											nezur.add_global("listfiles", {}, function()
     -- Create directories and files for testing
     makefolder(".tests/listfiles")
     writefile(".tests/listfiles/test_1.txt", "success")

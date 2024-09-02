@@ -406,93 +406,60 @@ end)
 		promise.Event:Wait()
 	end
 nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
-    -- Ensure the source code is a string
-    if type(source) ~= "string" then
-        error("Source must be a string")
-    end
+		-- type_check(1, source, {"string"})
+		-- type_check(2, chunkname, {"string"}, true)
 
-    -- Optional: Check chunkname type
-    if chunkname and type(chunkname) ~= "string" then
-        error("Chunkname must be a string")
-    end
+		if string.find(source, "game:HttpGet") then
+			source = string.gsub(source, "game:HttpGet", "HttpGet")
+			source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
+		end
 
-    -- Sanitize the source code by removing potentially dangerous patterns
-    source = string.gsub(source, "game:HttpGet", "HttpGet")
-    source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
+		local function random_string(k)
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+			local n = string.len(alphabet)
+			local pw = {}
+			for i = 1, k do
+				pw[i] = string.byte(alphabet, math.random(n))
+			end
+			return string.char(table.unpack(pw))
+		end
 
-    -- Prevent execution of bytecode or precompiled code
-    -- Check for patterns commonly associated with bytecode
-    if string.match(source, "^[%s]*local[%s]+[a-zA-Z_][a-zA-Z0-9_]*[%s]*=[%s]*function") then
-        warn("Bytecode or precompiled code detected. Execution is not allowed.")
-        return function() end
-    end
+		local dummy_script_name = tostring(random_string(8))
+		DSRequest(dummy_script_name)
 
-    -- Create a unique script name to avoid conflicts
-    local function random_string(k)
-        local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        local n = string.len(alphabet)
-        local pw = {}
-        for i = 1, k do
-            pw[i] = string.byte(alphabet, math.random(n))
-        end
-        return string.char(table.unpack(pw))
-    end
+		if not core_gui:FindFirstChild(dummy_script_name) then
+			local NewModule = fetch_modules()[1]:Clone()
+			NewModule["Name"] = dummy_script_name
+			NewModule["Parent"] = core_gui
+		end
 
-    local dummy_script_name = tostring(random_string(8))
+		local StoredFunc = nil
+		local dummyModule = core_gui:FindFirstChild(dummy_script_name)
 
-    -- Ensure that the dummy script is correctly managed
-    local function manage_dummy_script()
-        DSRequest(dummy_script_name)
+		LSRequest("loadstring", source, chunkname or "@", "")
 
-        if not core_gui:FindFirstChild(dummy_script_name) then
-            local NewModule = fetch_modules()[1]:Clone()
-            NewModule["Name"] = dummy_script_name
-            NewModule["Parent"] = core_gui
-        end
-    end
+		local input_manager = Instance.new("VirtualInputManager")
+            input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+			task.wait()
+			input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+            input_manager:Destroy()
 
-    manage_dummy_script()
+		local success, func = pcall(require, dummyModule)
+		if not success then
+			warn("There was an issue with the script that you tried to execute.")
+			pcall(function()
+				core_gui:FindFirstChild(dummy_script_name):Destroy()
+			end)
+			return function() end
+		else
+			StoredFunc = func
 
-    local StoredFunc = nil
-    local dummyModule = core_gui:FindFirstChild(dummy_script_name)
-
-    -- Ensure the LSRequest function does not execute the code directly
-    local success, _ = pcall(function()
-        LSRequest("loadstring", source, chunkname or "@", "")
-    end)
-
-    -- Simulate the behavior of VirtualInputManager
-    local function simulate_input_events()
-        local input_manager = Instance.new("VirtualInputManager")
-        input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
-        input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
-        task.wait()
-        input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
-        input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
-        input_manager:Destroy()
-    end
-
-    simulate_input_events()
-
-    -- Attempt to require the module and handle errors
-    local success, func = pcall(function()
-        return require(dummyModule)
-    end)
-
-    if not success then
-        warn("There was an issue with the script that you tried to execute.")
-        pcall(function()
-            core_gui:FindFirstChild(dummy_script_name):Destroy()
-        end)
-        return function() end
-    else
-        StoredFunc = func
-
-        -- Ensure the shared environment is set
-        getfenv(StoredFunc)["shared"] = nezur["environment"]["shared"]
-        return StoredFunc
-    end
-end)
+			getfenv(StoredFunc)["shared"] = nezur["environment"]["shared"]
+			return StoredFunc
+		end
+	end)
 
 	nezur.add_global({"newcclosure"}, function(func)
 		if nezur.environment.iscclosure(func) then

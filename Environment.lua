@@ -1481,6 +1481,30 @@ end
 		--	tmp:Destroy()
 		--end)
 	end)
+nezur.add_global({"setscriptable"}, function(object, distance)
+		--if distance then assert(type(distance) == "number", "The second argument must be number") end
+
+		--local OldMaxDistance, OldParent = object["MaxActivationDistance"], object["Parent"]
+		--local tmp = Instance.new("Part", workspace)
+
+		--tmp["CanCollide"], tmp["Anchored"], tmp["Transparency"] = false, true, 1
+		--tmp["Size"] = Vector3.new(30, 30, 30)
+		--object["Parent"] = tmp
+		--object["MaxActivationDistance"] = math["huge"]
+
+		--local Heartbeat = run_service["Heartbeat"]:Connect(function()
+		--	local camera = workspace["CurrentCamera"]
+		--	tmp["CFrame"] = camera["CFrame"] * CFrame.new(0, 0, -20) + camera["CFrame"]["LookVector"]
+		--	virtual_user:ClickButton1(Vector2.new(20, 20), camera["CFrame"])
+		--end)
+
+		--object["MouseClick"]:Once(function()
+		--	Heartbeat:Disconnect()
+		--	object["MaxActivationDistance"] = OldMaxDistance
+		--	object["Parent"] = OldParent
+		--	tmp:Destroy()
+		--end)
+	end)
 
 	nezur.add_global({"getcallbackvalue"}, function(object, property)
 		local success, result = pcall(function()

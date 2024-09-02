@@ -1668,23 +1668,30 @@ nezur.add_global({"sethiddenproperty"}, function(object, property, value)
         return true
     end
 
-    -- Attempt to check if the property exists and is modifiable
-    local success, result = pcall(function()
-        return object[property]
-    end)
-
-    if not success then
-        warn("Property does not exist on the object:", property)
-        return true
-    end
-
     -- Attempt to set the property value
-    success, errorMessage = pcall(function()
+    local success, errorMessage = pcall(function()
+        -- Try to set the property directly
         object[property] = value
     end)
 
     if not success then
-        warn("Failed to set property value:", errorMessage)
+        -- If direct setting fails, handle hidden properties or fallback mechanisms
+        -- Example: If direct setting fails, try to use an alternative method
+        -- Note: Replace this with actual logic for accessing hidden properties
+        local success, hiddenError = pcall(function()
+            -- Custom logic to set hidden properties (if applicable)
+            -- For demonstration, we use dummy logic
+            local hiddenProperty = object:FindFirstChild(property)
+            if hiddenProperty then
+                hiddenProperty.Value = value
+            else
+                warn("Failed to access hidden property:", property)
+            end
+        end)
+
+        if not success then
+            warn("Failed to set property value:", hiddenError)
+        end
     end
 
     -- Always return true

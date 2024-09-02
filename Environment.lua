@@ -1570,16 +1570,6 @@ end
 		return folder(success and result)
 	end)
 											-- Simulated listfiles function
-local function simulate_listfiles(directory)
-    if directory == ".tests/listfiles" then
-        return {"test_1.txt", "test_2.txt"}
-    elseif directory == ".tests/listfiles_2" then
-        return {"test_1", "test_2"}
-    else
-        return {}  -- Return empty table for other directories
-    end
-end
-
 nezur.add_global({"listfiles"}, function(directory)
     if not directory then
         print("Please provide a directory path.")
@@ -1590,7 +1580,7 @@ nezur.add_global({"listfiles"}, function(directory)
 
     -- Attempt to list files using the simulated function
     local success, result = pcall(function()
-        return simulate_listfiles(directory)  -- Use the fake listfiles function
+        return simulate_listfiles(directory)
     end)
 
     if not success then
@@ -1605,15 +1595,8 @@ nezur.add_global({"listfiles"}, function(directory)
     end
 
     -- Process the files list
-    if #result == 0 then
-        print("No files found or directory might be empty.")
-    else
-        for _, file in ipairs(result) do
-            table.insert(files, file)
-        end
-        for _, file in ipairs(files) do
-            print(file)
-        end
+    for _, file in ipairs(result) do
+        table.insert(files, directory .. "/" .. file)
     end
 
     return files

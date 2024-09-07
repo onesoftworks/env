@@ -60,6 +60,346 @@ local constants = {
 	["AnalyticsGameMenuFlowEnd"] = "gamemenu_flow_end",
 }
 
+local PROTECTED_SERVICES = {
+	["AppUpdateService"] = {
+		"DisableDUAR",
+		"DisableDUARAndOpenSurvey",
+		"PerformManagedUpdate"
+	},
+
+	["AssetManagerService"] = {
+		"GetFilename",
+		"Upload",
+		"AssetImportSession",
+		"AddNewPlace",
+		"PublishLinkedSource"
+	},
+
+	["AssetService"] = {
+		"SavePlaceAsync"
+	},
+
+	["AvatarEditorService"] = {
+		"NoPromptCreateOutfit",
+		"NoPromptDeleteOutfit",
+		"NoPromptRenameOutfit",
+		"NoPromptSaveAvatar",
+		"NoPromptSaveAvatarThumbnailCustomization",
+		"NoPromptSetFavorite",
+		"NoPromptUpdateOutfit",
+		"PerformCreateOutfitWithDescription",
+		"PerformDeleteOutfit",
+		"PerformRenameOutfit",
+		"PerformSaveAvatarWithDescription",
+		"PerformSetFavorite",
+		"PerformUpdateOutfit",
+		"SetAllowInventoryReadAccess",
+		"SignalCreateOutfitFailed",
+		"SignalCreateOutfitPermissionDenied",
+		"SignalDeleteOutfitFailed",
+		"SignalDeleteOutfitPermissionDenied",
+		"SignalRenameOutfitFailed",
+		"SignalRenameOutfitPermissionDenied",
+		"SignalSaveAvatarFailed",
+		"SignalSaveAvatarPermissionDenied",
+		"SignalSetFavoriteFailed",
+		"SignalSetFavoritePermissionDenied",
+		"SignalUpdateOutfitFailed",
+		"SignalUpdateOutfitPermissionDenied"
+	},
+
+	["AvatarImportService"] = {
+		"ImportFBXAnimationFromFilePathUserMayChooseModel",
+		"ImportFBXAnimationUserMayChooseModel",
+		"ImportFbxRigWithoutSceneLoad",
+		"ImportLoadedFBXAnimation"
+	},
+
+	["BrowserService"] = {
+		"CloseBrowserWindow",
+		"CopyAuthCookieFromBrowserToEngine",
+		"EmitHybridEvent",
+		"ExecuteJavaScript",
+		"OpenBrowserWindow",
+		"OpenNativeOverlay",
+		"OpenWeChatAuthWindow",
+		"ReturnToJavaScript",
+		"SendCommand"
+	},
+
+	["CaptureService"] = {
+		"RetreiveCaptures",
+		"SaveCaptureToExternalStorage",
+		"SaveCapturesToExternalStorageAsync",
+		"SaveScreenshotCapture",
+		"DeleteCapturesAsync",
+		"DeleteCaptureAsync",
+		"DeleteCapture",
+		"DeleteCaptures",
+		"GetCaptureFilePathAsync",
+		"CaptureScreenshot"
+	},
+
+	["CommandService"] = {
+		"ChatLocal",
+		"RegisterExecutionCallback",
+		"CommandInstance",
+		"Execute",
+		"RegisterCommand",
+	},
+
+	["ContentProvider"] = {
+		"GetFailedRequests",
+		"SetBaseUrl"
+	},
+
+	["ContextActionService"] = {
+		"CallFunction"
+	},
+
+	--[[["CoreGui"] = {
+		"TakeScreenshot",
+		"ToggleRecording"
+	},]]
+
+	["DataModel"] = {
+		"GetScriptFilePath",
+		"CoreScriptSyncService",
+		"DefineFastInt",
+		"DefineFastString",
+		"OpenScreenshotsFolder",
+		"OpenVideosFolder",
+		"SetFastFlagForTesting",
+		"SetFastIntForTesting",
+		"SetFastStringForTesting",
+		"ScreenshotReady",
+		"SetVideoInfo",
+		"ReportInGoogleAnalytics",
+		"Load"
+	},
+
+	["GuiService"] = {
+		"BroadcastNotification",
+		"OpenBrowserWindow"
+	},
+
+	["HttpRbxApiService"] = {
+		"GetAsync",
+		"GetAsyncFullUrl",
+		"PostAsync",
+		"PostAsyncFullUrl",
+		"RequestAsync",
+		"RequestLimitedAsync",
+		"RequestInternal"
+	},
+
+	["HttpService"] = {
+		"requestInternal",
+		"RequestInternal"
+	},
+
+	["InsertService"] = {
+		-- "LoadLocalAsset", -- not too sure if we should blacklist this one or not
+		"GetLocalFileContents"
+	},
+
+	["LocalizationService"] = {
+		"PromptDownloadGameTableToCSV",
+		"PromptExportToCSVs",
+		"PromptImportFromCSVs",
+		"PromptUploadCSVToGameTable",
+		"SetRobloxLocaleId",
+		"StartTextScraper",
+		"StopTextScraper"
+	},
+
+	["LoginService"] = {
+		"Logout",
+		"PromptLogin"
+	},
+
+	["LogService"] = {
+		"ExecuteScript",
+		"GetHttpResultHistory",
+		"RequestHttpResultApproved",
+		"RequestServerHttpResult"
+	},
+
+	["MarketplaceService"] = {
+		"GetRobuxBalance",
+		"PerformPurchaseV2",
+		"PrepareCollectiblesPurchase",
+		"GetSubscriptionProductInfoAsync",
+		"GetSubscriptionPurchaseInfoAsync",
+		"GetUserSubscriptionPaymentHistoryAsync",
+		"GetUserSubscriptionStatusAsync",
+		"PerformPurchase",
+		"PromptGamePassPurchase",
+		"PromptNativePurchase",
+		"PromptProductPurchase",
+		"PromptThirdPartyPurchase",
+		"ReportAssetSale",
+		"ReportRobuxUpsellStarted",
+		"SignalAssetTypePurchased",
+		"SignalClientPurchaseSuccess",
+		"SignalMockPurchasePremium",
+		"SignalServerLuaDialogClosed",
+		"PromptRobloxPurchase",
+		"PerformPurchaseV3",
+		"PromptBundlePurchase",
+		"PromptSubscriptionPurchase",
+		"PerformSubscriptionPurchase",
+		"PerformBulkPurchase",
+		"PromptBulkPurchase"
+	},
+
+	["MaterialGenerationService"] = {
+		"RefillAccountingBalanceAsync",
+		"StartSession"
+	},
+
+	["MaterialGenerationSession"] = {
+		"GenerateImagesAsync",
+		"GenerateMaterialMapsAsync",
+		"UploadMaterialAsync",
+	},
+
+	["MessageBusService"] = {
+		"GetLast",
+		"GetMessageId",
+		"GetProtocolMethodRequestMessageId",
+		"GetProtocolMethodResponseMessageId",
+		"MakeRequest",
+		"Publish",
+		"PublishProtocolMethodRequest",
+		"PublishProtocolMethodResponse",
+		"SetRequestHandler",
+		"Subscribe",
+		"SubscribeToProtocolMethodRequest",
+		"SubscribeToProtocolMethodResponse"
+	},
+
+	["NotificationService"] = {
+		"SwitchedToAppShellFeature"
+	},
+
+	["OmniRecommendationsService"] = {
+		"ClearSessionId",
+		"GetSessionId",
+		"MakeRequest"
+	},
+
+	["PackageUIService"] = {
+		"ConvertToPackageUpload",
+		"PublishPackage",
+		"SetPackageVersion",
+	},
+
+	["Player"] = {
+		"AddToBlockList",
+		"RequestFriendship",
+		"RevokeFriendship",
+		"UpdatePlayerBlocked"
+	},
+
+	["Players"] = {
+		"ReportAbuse",
+		"ReportAbuseV3",
+		"TeamChat",
+		"WhisperChat"
+	},
+
+	["ScriptContext"] = {
+		"AddCoreScriptLocal",
+		"DeserializeScriptProfilerString",
+		"SaveScriptProfilingData"
+	},
+
+	["VirtualInputManager"] = {
+		"sendRobloxEvent"
+	},
+
+	["OpenCloudService"] = {
+		"HttpRequestAsync"
+	},
+
+	["LinkingService"] = {
+		"DetectUrl",
+		"GetAndClearLastPendingUrl",
+		"GetLastLuaUrl",
+		"IsUrlRegistered",
+		"OpenUrl",
+		"RegisterLuaUrl",
+		"StartLuaUrlDelivery",
+		"StopLuaUrlDelivery",
+		"SupportsSwitchToSettingsApp",
+		"SwitchToSettingsApp",
+		"OnLuaUrl"
+	},
+
+	["CommerceService"] = {
+		"PromptRealWorldCommerceBrowser",
+		"InExperienceBrowserRequested"
+	},
+
+	["VoiceChatInternal"] = {
+		"SubscribeBlock",
+		"SubscribeUnblock"
+	},
+
+	["ScriptProfilerService"] = {
+		"SaveScriptProfilingData"
+	},
+
+	["PublishService"] = {
+		"CreateAssetAndWaitForAssetId",
+		"CreateAssetOrAssetVersionAndPollAssetWithTelemetryAsync",
+		"PublishCageMeshAsync",
+		"PublishDescendantAssets"
+	},
+
+	["VideoCaptureService"] = {
+		"GetCameraDevices"
+	},
+
+	["SocialService"] = {
+		"CanSendCallInviteAsync",
+		"CanSendGameInviteAsync",
+		"InvokeGameInvitePromptClosed",
+		"HideSelfView",
+		"InvokeIrisInvite",
+		"InvokeIrisInvitePromptClosed",
+		"PromptGameInvite",
+		"PromptPhoneBook",
+		"ShowSelfView",
+		"CallInviteStateChanged",
+		"GameInvitePromptClosed",
+		"IrisInviteInitiated",
+		"PhoneBookPromptClosed",
+		"PromptInviteRequested",
+		"PromptIrisInviteRequested"
+	}
+};
+
+local httpContentTypeToHeader
+do
+    -- * Keep this updated https://github.com/MaximumADHD/Roblox-Client-Tracker/blob/roblox/LuaPackages/Packages/_Index/HttpServiceMock/HttpServiceMock/httpContentTypeToHeader.lua
+    -- * https://create.roblox.com/docs/reference/engine/enums/HttpContentType
+    local httpContentTypeToHeaderLookup = {
+        [Enum.HttpContentType.ApplicationJson] = "application/json",
+        [Enum.HttpContentType.ApplicationUrlEncoded] = "application/x-www-form-urlencoded",
+        [Enum.HttpContentType.ApplicationXml] = "application/xml",
+        [Enum.HttpContentType.TextPlain] = "text/plain",
+        [Enum.HttpContentType.TextXml] = "text/xml",
+    }
+
+    httpContentTypeToHeader = function(httpContentType: Enum.HttpContentType): string
+        local value = httpContentTypeToHeaderLookup[httpContentType]
+        assert(value, "Unable to map Enum.HttpContentType to Content-Type. Use a Content-Type string instead")
+        return value
+    end
+end
+
 task.spawn(function()
 	local virtual_input_manager = game:GetService("VirtualInputManager")
 	local user_input_service = game:GetService("UserInputService")
@@ -67,6 +407,8 @@ task.spawn(function()
 	local http_service = game:GetService("HttpService")
 	local run_service = game:GetService("RunService")
 	local core_gui = game:GetService("CoreGui")
+    local n_game = newproxy(true);
+	local old_game = game;
 
 	local exploit_name, exploit_version, exploit_identity = "Nezur", "1.0.0b", 8
 	local is_window_focused = true
@@ -157,14 +499,126 @@ task.spawn(function()
 	local nezur = {
 		environment = {
 			shared = {
-				globalEnv = {}
+				globalEnv = { game = n_game }
 			},
 			crypt = {},
 			debug = {},
-			cache = {}
+			cache = {},
+            game = n_game
 		},
-		environments = {}
+		environments = { }
 	}
+
+	local cached_protected_services = { }
+	local function create_protected_service(service)
+		local service_name = service.ClassName
+
+		if cached_protected_services[service_name] then 
+			return cached_protected_services[service_name]
+		end
+
+		if PROTECTED_SERVICES[service_name] == nil then 
+			return service;
+		end
+
+		local protected_service = newproxy(true)
+		local protected_service_metatable = getmetatable(protected_service)
+		local protected_service_functions = PROTECTED_SERVICES[service_name]
+
+		cached_protected_services[service_name] = protected_service
+
+		protected_service_metatable["__index"] = function(self, idx)
+			local s, service_index = pcall(function()
+				return service[idx]
+			end)
+
+			if table.find(protected_service_functions, idx) then 
+				return function (...)
+					error("Attempting to call a dangerous/malicious function");
+				end
+			end
+
+			if service_index and type(service_index) == "function" then
+				return function(self, ...)
+					return service_index(service, ...)
+				end
+			end
+
+			if ( s ) then
+				return service_index;
+			end
+	
+			return nil;
+		end
+
+		protected_service_metatable["__newindex"] = function(self, idx, value)
+			service[idx]=value;
+		end
+
+		local o_tstring = tostring(service);
+		protected_service_metatable["__tostring"] = function(self)
+			return o_tstring
+		end
+
+		protected_service_metatable["__metatable"] = getmetatable(service);
+
+		return protected_service
+	end
+
+    local n_game_metatable = getmetatable(n_game);
+    n_game_metatable["__index"] = function(metatable, idx)
+        local s, game_index = pcall(function()
+            return old_game[idx]
+        end)
+
+		if table.find(PROTECTED_SERVICES["DataModel"], idx) then 
+			return function (...)
+				error("Attempting to call a dangerous/malicious function");
+			end
+		end
+
+        if idx == "HttpGet" or idx == "HttpGetAsync" then 
+            return function(self, ...)
+                return nezur.environment.httpget(...)
+            end
+        elseif (idx:lower() == "getservice" or idx:lower() == "findservice") then
+            return function(self, service)
+				return create_protected_service(old_game:GetService(service));
+			end
+        elseif idx == "HttpPost" or idx == "HttpPostAsync" then 
+            return function(self, ...)
+                return nezur.environment.httppost(...)
+            end
+        elseif idx == "GetObjects" or idx == "GetObjectsAsync" then 
+            return function(self, ...)
+                return nezur.environment.getobjects(...)
+            end
+        elseif game_index and type(game_index) == "function" then
+            return function(self, ...)
+                return game_index(old_game, ...)
+            end
+        end
+
+		if ( s ) then
+			if ( typeof(game_index) == "Instance" ) then
+				return create_protected_service( game_index );
+			end
+	
+			return game_index;
+		end
+
+		return nil;
+    end
+
+    n_game_metatable["__newindex"] = function(metatable, idx, value)
+        old_game[idx] = value
+    end
+
+    n_game_metatable["__tostring"] = function(metatable)
+        return "Game";
+    end
+
+    n_game_metatable["__metatable"] = getmetatable(old_game);
 
 	function nezur.load(scope)
 		scope = scope or debug.info(2, "f")
@@ -185,21 +639,78 @@ task.spawn(function()
 		end
 	end
 
-	nezur.add_global({"httpget", "http_get", "HttpGet"}, function(requestUrl)
+	nezur.add_global({"httpget", "http_get", "HttpGet"}, function(requestUrl, arg2, arg3)
 		if run_service:IsStudio() then
 			return error("game:HttpGet is not available in Roblox Studio.")
 		end
 
-		local Promise = Instance.new("BindableEvent")
-		local Content
+		local args = { Url = requestUrl, Method = "GET" }
 
-		http_service:RequestInternal({ Url = requestUrl }):Start(function (Succeeded, Result)
-			Content = Succeeded and Result.StatusCode == 200 and Result.Body or nil
-			Promise:Fire()
-		end)
+		local arg3_type = typeof(arg3)
 
-		Promise.Event:Wait()
-		return Content
+		if arg3_type == "table" then
+			args.Headers = arg3
+		elseif arg3_type == "EnumItem" and arg3.EnumType == Enum.HttpRequestType then
+			arg2 = arg3
+		end
+
+		local arg2_type = typeof(arg2)
+		if arg2_type == "boolean" then
+			if arg2 then
+				local Headers = args.Headers
+				if not Headers then
+					Headers = {}
+					args.Headers = Headers
+				end
+
+				Headers["Cache-Control"] = "no-cache"
+			end
+		end
+
+		return nezur.environment.request(args).Body;
+	end)
+
+	nezur.add_global({"httppost", "http_post", "HttpPost"}, function(requestUrl, body, arg3, arg4, arg5)
+		if run_service:IsStudio() then
+			return error("game:HttpPost is not available in Roblox Studio.")
+		end
+
+		local args = { Url = requestUrl, Method = "POST", Body = body }
+
+		if type(arg3) == "boolean" then -- HttpGet
+			arg3, arg4, arg5 = arg4, arg5, nil -- because arg3 likely means 'synchronous' in this case and we don't need it
+		end
+
+		if arg5 then -- HttpService.PostAsync
+       	 args.Headers = arg3 --? In docs they are Variant though what other types does that imply ?
+    	end
+
+		if arg3 then
+			local Headers = args.Headers
+			if not Headers then
+				Headers = {}
+				args.Headers = Headers
+			end
+
+			Headers["Content-Type"] = if type(arg3) == "string" then arg3 else httpContentTypeToHeader(arg3)
+		end
+
+		return nezur.environment.request(args).Body;
+	end)
+
+	nezur.add_global({"getobjects", "get_objects", "GetObjects"}, function(...)
+		local assets = {};
+		local args = { ... }
+
+		for i, assetid in args do 
+			if type(assetid) == "number" then
+				assetid = "rbxassetid://" .. assetid
+			end
+
+			table.insert(args, game:GetService("InsertService"):LoadLocalAsset(assetid));
+		end
+
+		return assets;
 	end)
 
 	nezur.add_global({"checkcaller"}, function()
@@ -409,10 +920,10 @@ nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
 		-- type_check(1, source, {"string"})
 		-- type_check(2, chunkname, {"string"}, true)
 
-		if string.find(source, "game:HttpGet") then
+		--[[if string.find(source, "game:HttpGet") then
 			source = string.gsub(source, "game:HttpGet", "HttpGet")
 			source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
-		end
+		end]]
 
 		local function random_string(k)
 			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -1936,38 +2447,128 @@ end)
 
 	end)
 
+	local allowed_request = { "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD" }
 	nezur.add_global({"request", "http_request"}, function(options)
-		options.CachePolicy = Enum.HttpCachePolicy.None
-		options.Priority = 5
-		options.Timeout = 15000
-
 		local OptionsType = type(options)
 		assert(OptionsType == "table", "invalid argument #1 to 'request' (table expected, got " .. OptionsType .. ")", 2)
 
-		options.Url = options.Url:gsub("roblox.com", "roproxy.com")
+		local UrlType = type(options.Url);
+		assert(UrlType == "string", "invalid Url to 'request' (string expected, got " .. UrlType .. ")", 2)
 
-		local rbx_client_id = game:GetService("RbxAnalyticsService"):GetClientId()
+		if (options.Url and string.find(options.Url, "https://economy.roblox.com/")) then 
+			error("Blacklisted Url");
+		end
 
-		options.Headers = options.Headers or {}
-		options.Headers["Nezur-Fingerprint"] = rbx_client_id
-		options.Headers["Nezur-User-Identifier"] = rbx_client_id
+		local request_options = { Url = options.Url, Method = "GET" };
+		if (type(options.Method) == "string") then 
+			request_options.Method = string.upper(options.Method);
+			if (not table.find(allowed_request, request_options.Method)) then 
+				error("invalid Method to 'request'", 2);
+			end
+		end
 
-		local bindable_event = Instance.new("BindableEvent")
+		local headers = {};
+		local has_useragent = false;
+		if ( type( options.Headers ) == "table" ) then 
+			for i,v in options.Headers do 
+				if ( tostring(i):lower() == "user-agent" ) then
+					has_useragent = true;
+				end
 
-		local response
-		response = http_service.RequestInternal(http_service, options)
+				headers[tostring(i)] = tostring(v)
+			end
+		end
 
-		local result = nil
+		if (has_useragent == false) then 
+			headers["User-Agent"] = table.concat({ nezur.environment.identifyexecutor() }, "/");
+		end
 
-		response.Start(response, function(_, body)
-			result = body
-			bindable_event:Fire()
+		local rbx_client_id = game:GetService("RbxAnalyticsService"):GetClientId():gsub("\"", "");
+		headers["Nezur-Fingerprint"] = rbx_client_id
+		headers["Nezur-User-Identifier"] = rbx_client_id
+
+		if request_options.Method == "GET" or request_options.Method == "POST" then
+
+			local PlaceId = game.PlaceId
+			local GameId = game.JobId:gsub("\"", "") -- ! Not sure, things that this could be are: (RbxAnalyticsService/game).GetPlaySessionId or RbxAnalyticsService.GetSessionId
+
+			headers["User-Agent"] = "Roblox/WinInet"
+
+			headers["Roblox-Place-Id"] = tostring(PlaceId)
+			headers["Roblox-Game-Id"] = GameId
+			headers["Roblox-Session-Id"] = {
+				GameId = GameId,
+				PlaceId = PlaceId,
+			}
+		else
+			if (has_useragent == false) then 
+				headers["User-Agent"] = table.concat({ nezur.environment.identifyexecutor() }, "/");
+			end
+		end
+
+		request_options.Headers = headers;
+
+		local cookies = {};
+		if ( type( options.Cookies ) == "table" ) then 
+			for i,v in options.Cookies do 
+				cookies[tostring(i)] = tostring(v)
+			end
+		end
+
+		request_options.Cookies = cookies;
+
+		local promise = Instance.new("BindableEvent")
+		local success = false
+		local message = "";
+
+		local url = "http://localhost:8449/nezurbridge"
+		local body = http_service:JSONEncode({
+			["FuncName"] = "http_request",
+			["Args"] = { http_service:JSONEncode(request_options) }
+		})
+
+		local request = http_service:RequestInternal({
+			["Url"] = url,
+			["Method"] = "POST",
+			["Headers"] = {
+				["Content-Type"] = "application/json"
+			},
+			["Body"] = body
+		})
+
+		request:Start(function(succeeded, res)
+			if succeeded and res.StatusCode == 200 then
+				local responseData = http_service:JSONDecode(res.Body)
+				message = responseData.Message;
+
+				if responseData.Status == "Success" then
+					success = true
+				else
+					success = false
+				end
+			else
+				success = false
+			end
+			promise:Fire()
 		end)
 
-		bindable_event.Event:Wait()
+		promise.Event:Wait()
 
-		return result
-	end)	
+		if ( success ) then
+			local request_respond = http_service:JSONDecode(message)
+
+			return {
+				Success = request_respond.Success or false,
+				StatusCode = request_respond.StatusCode or 0,
+				StatusMessage = request_respond.StatusMessage or "",
+				Headers = request_respond.Headers or {},
+				Cookies = request_respond.Cookies or {},
+				Body = request_respond.Body or ""
+			}
+		end
+
+		error("Failed to make request");
+	end)
 
 	local current_fps, _task = nil, nil
 
@@ -2021,9 +2622,7 @@ end)
 	end)
 
 	nezur.add_global({"getrenv"}, function()
-		return {
-			["G"] = "ethan's cock is fuckin huge"
-		}
+		return { }
 	end)
 
 	nezur.add_global({"queue_on_teleport", "queueonteleport"}, function(code)

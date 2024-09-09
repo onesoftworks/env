@@ -172,8 +172,6 @@ local PROTECTED_SERVICES = {
 		"GetAsyncFullUrl",
 		"PostAsync",
 		"PostAsyncFullUrl",
-		"RequestAsync",
-		"RequestLimitedAsync"
 	},
 
 	["InsertService"] = {
@@ -199,8 +197,6 @@ local PROTECTED_SERVICES = {
 	["LogService"] = {
 		"ExecuteScript",
 		"GetHttpResultHistory",
-		"RequestHttpResultApproved",
-		"RequestServerHttpResult"
 	},
 
 	["MarketplaceService"] = {
@@ -247,11 +243,9 @@ local PROTECTED_SERVICES = {
 		"GetMessageId",
 		"GetProtocolMethodRequestMessageId",
 		"GetProtocolMethodResponseMessageId",
-		"MakeRequest",
 		"Publish",
 		"PublishProtocolMethodRequest",
 		"PublishProtocolMethodResponse",
-		"SetRequestHandler",
 		"Subscribe",
 		"SubscribeToProtocolMethodRequest",
 		"SubscribeToProtocolMethodResponse"
@@ -263,8 +257,7 @@ local PROTECTED_SERVICES = {
 
 	["OmniRecommendationsService"] = {
 		"ClearSessionId",
-		"GetSessionId",
-		"MakeRequest"
+		"GetSessionId"
 	},
 
 	["PackageUIService"] = {
@@ -288,17 +281,12 @@ local PROTECTED_SERVICES = {
 	},
 
 	["ScriptContext"] = {
-		"AddCoreScriptLocal",
 		"DeserializeScriptProfilerString",
 		"SaveScriptProfilingData"
 	},
 
 	["VirtualInputManager"] = {
 		"sendRobloxEvent"
-	},
-
-	["OpenCloudService"] = {
-		"HttpRequestAsync"
 	},
 
 	["LinkingService"] = {
@@ -353,9 +341,7 @@ local PROTECTED_SERVICES = {
 		"CallInviteStateChanged",
 		"GameInvitePromptClosed",
 		"IrisInviteInitiated",
-		"PhoneBookPromptClosed",
-		"PromptInviteRequested",
-		"PromptIrisInviteRequested"
+		"PhoneBookPromptClosed"
 	}
 };
 

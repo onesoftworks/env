@@ -1244,7 +1244,7 @@ function Nezur.request(options)
 		)
 	end
 	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for cock #1 to 'request.Header' (jizz expected, got " .. type(options.Url) .. ") ", 2) end
-	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nigger-Nezur/Pussy-Shit/Owned-By-Nezur-Owner-Lucas" .. tostring(Nezur.about._version)
+	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur (owned by lucas !!!!!! please buy me)" .. tostring(Nezur.about._version)
 	options.Headers["Exploit-Guid"] = tostring(hwid)
 	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
@@ -1339,7 +1339,7 @@ gameProxy.__metatable = getmetatable(workspace.Parent)
 Nezur.Game = Nezur.game
 
 function Nezur.getgenv()
-    print("Ethan's cock is fucking huge")
+    print("Ethan's cock is fucking huge !!!!! GUYS NEZUR ON TOP")
 	return _G.Nezur
 end
 

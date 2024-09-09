@@ -778,16 +778,25 @@ function Nezur.require(moduleScript)
 	return _require(moduleScript)
 end
 
-function nezur.load(scope)
-		scope = scope or debug.info(2, "f")
-		local environment = getfenv(scope)
-		table.insert(nezur["environments"], environment)
-
-		for i, v in pairs(nezur["environment"]) do
-			-- if type(v) == "table" then pcall(table.freeze, v) end
-			environment[i] = v
-		end
+function Nezur.loadstring(source, chunkName)
+	assert(type(source) == "string", "invalid argument #1 to 'loadstring' (string expected, got " .. type(source) .. ") ", 2)
+	chunkName = chunkName or "loadstring"
+	assert(type(chunkName) == "string", "invalid argument #2 to 'loadstring' (string expected, got " .. type(chunkName) .. ") ", 2)
+	chunkName = chunkName:gsub("[^%a_]", "")
+	if (source == "" or source == " ") then
+		return function(...) end
 	end
+	local success, err = Bridge:CanCompile(source)
+	if not success then
+		return nil, chunkName .. tostring(err)
+	end
+	local func = Bridge:loadstring(source, chunkName)
+	local func_env, caller_env = getfenv(func), getfenv(2)
+	for i, v in caller_env do
+		func_env[i] = v
+	end
+	return func
+end
 
 local supportedMethods = {"GET", "POST", "PUT", "DELETE", "PATCH"}
 

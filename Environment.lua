@@ -1240,7 +1240,7 @@ function Nezur.request(options)
 		)
 	end
 	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for cock #1 to 'request.Header' (jizz expected, got " .. type(options.Url) .. ") ", 2) end
-	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur (owned by lucas !!!!!! please buy me)" .. tostring(Nezur.about._version)
+	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur (owned by lucas !!!!!! please buy me) / Version " .. tostring(Nezur.about._version)
 	options.Headers["Exploit-Guid"] = tostring(hwid)
 	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)

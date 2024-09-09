@@ -14,6 +14,9 @@ local objectPointerContainer, scriptsContainer = Instance.new("Folder", NezurCon
 objectPointerContainer.Name = "Instance Pointers"
 scriptsContainer.Name = "Scripts"
 
+local old_game = game
+local n_game = newproxy(true)
+
 local Nezur = {
 	about = {
 		_name = 'Nezur',
@@ -172,6 +175,14 @@ local PROTECTED_SERVICES = {
 		"GetAsyncFullUrl",
 		"PostAsync",
 		"PostAsyncFullUrl",
+		"RequestAsync",
+		"RequestLimitedAsync",
+		"RequestInternal"
+	},
+
+	["HttpService"] = {
+		"requestInternal",
+		"RequestInternal"
 	},
 
 	["InsertService"] = {
@@ -197,6 +208,8 @@ local PROTECTED_SERVICES = {
 	["LogService"] = {
 		"ExecuteScript",
 		"GetHttpResultHistory",
+		"RequestHttpResultApproved",
+		"RequestServerHttpResult"
 	},
 
 	["MarketplaceService"] = {
@@ -243,9 +256,11 @@ local PROTECTED_SERVICES = {
 		"GetMessageId",
 		"GetProtocolMethodRequestMessageId",
 		"GetProtocolMethodResponseMessageId",
+		"MakeRequest",
 		"Publish",
 		"PublishProtocolMethodRequest",
 		"PublishProtocolMethodResponse",
+		"SetRequestHandler",
 		"Subscribe",
 		"SubscribeToProtocolMethodRequest",
 		"SubscribeToProtocolMethodResponse"
@@ -257,7 +272,8 @@ local PROTECTED_SERVICES = {
 
 	["OmniRecommendationsService"] = {
 		"ClearSessionId",
-		"GetSessionId"
+		"GetSessionId",
+		"MakeRequest"
 	},
 
 	["PackageUIService"] = {
@@ -281,12 +297,17 @@ local PROTECTED_SERVICES = {
 	},
 
 	["ScriptContext"] = {
+		"AddCoreScriptLocal",
 		"DeserializeScriptProfilerString",
 		"SaveScriptProfilingData"
 	},
 
 	["VirtualInputManager"] = {
 		"sendRobloxEvent"
+	},
+
+	["OpenCloudService"] = {
+		"HttpRequestAsync"
 	},
 
 	["LinkingService"] = {
@@ -341,28 +362,11 @@ local PROTECTED_SERVICES = {
 		"CallInviteStateChanged",
 		"GameInvitePromptClosed",
 		"IrisInviteInitiated",
-		"PhoneBookPromptClosed"
+		"PhoneBookPromptClosed",
+		"PromptInviteRequested",
+		"PromptIrisInviteRequested"
 	}
 };
-
-local httpContentTypeToHeader
-do
-    -- * Keep this updated https://github.com/MaximumADHD/Roblox-Client-Tracker/blob/roblox/LuaPackages/Packages/_Index/HttpServiceMock/HttpServiceMock/httpContentTypeToHeader.lua
-    -- * https://create.roblox.com/docs/reference/engine/enums/HttpContentType
-    local httpContentTypeToHeaderLookup = {
-        [Enum.HttpContentType.ApplicationJson] = "application/json",
-        [Enum.HttpContentType.ApplicationUrlEncoded] = "application/x-www-form-urlencoded",
-        [Enum.HttpContentType.ApplicationXml] = "application/xml",
-        [Enum.HttpContentType.TextPlain] = "text/plain",
-        [Enum.HttpContentType.TextXml] = "text/xml",
-    }
-
-    httpContentTypeToHeader = function(httpContentType: Enum.HttpContentType): string
-        local value = httpContentTypeToHeaderLookup[httpContentType]
-        assert(value, "Unable to map Enum.HttpContentType to Content-Type. Use a Content-Type string instead")
-        return value
-    end
-end
 
 local cached_protected_services = { }
 	local function create_protected_service(service)
@@ -432,22 +436,10 @@ local cached_protected_services = { }
 			end
 		end
 
-        if idx == "HttpGet" or idx == "HttpGetAsync" then 
-            return function(self, ...)
-                return nezur.environment.httpget(...)
-            end
-        elseif (idx:lower() == "getservice" or idx:lower() == "findservice") then
+        if (idx:lower() == "getservice" or idx:lower() == "findservice") then
             return function(self, service)
 				return create_protected_service(old_game:GetService(service));
 			end
-        elseif idx == "HttpPost" or idx == "HttpPostAsync" then 
-            return function(self, ...)
-                return nezur.environment.httppost(...)
-            end
-        elseif idx == "GetObjects" or idx == "GetObjectsAsync" then 
-            return function(self, ...)
-                return nezur.environment.getobjects(...)
-            end
         elseif game_index and type(game_index) == "function" then
             return function(self, ...)
                 return game_index(old_game, ...)
@@ -476,7 +468,7 @@ local cached_protected_services = { }
     n_game_metatable["__metatable"] = getmetatable(old_game);
 
 if script.Name == "VRNavigation" then
-    print("[NEZUR] Initialized by lucas nezur owner 5+ years C++")
+    warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")
 end
 
 local lookupValueToCharacter = buffer.create(64)

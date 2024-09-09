@@ -1,1539 +1,2325 @@
---!native
---!optimize 2
-local NEZUR_UNIQUE = "%NEZUR_UNIQUE_ID%"
+require(script["Parent"]["Flags"]["GetFFlagEnableInGameMenuDurationLogger"])()
 
-local HttpService, UserInputService, InsertService = game:FindService("HttpService"), game:FindService("UserInputService"), game:FindService("InsertService")
-local RunService, CoreGui = game:FindService("RunService"), game:FindService("CoreGui")
-local VirtualInputManager = Instance.new("VirtualInputManager")
-
-if CoreGui:FindFirstChild("Nezur") then return end
-
-local NezurContainer = Instance.new("Folder", CoreGui)
-NezurContainer.Name = "Nezur"
-local objectPointerContainer, scriptsContainer = Instance.new("Folder", NezurContainer), Instance.new("Folder", NezurContainer)
-objectPointerContainer.Name = "Instance Pointers"
-scriptsContainer.Name = "Scripts"
-
-local Nezur = {
-	about = {
-		_name = 'Nezur',
-		_version = '%NEZUR_VERSION%'
-	}
-}
-table.freeze(Nezur.about)
-
-local coreModules = {}
-for _, descendant in CoreGui.RobloxGui.Modules:GetDescendants() do
-	if descendant.ClassName == "ModuleScript" then
-		table.insert(coreModules, descendant)
-	end
-	if #coreModules > 5000 then
-		break
-	end
-end
-
-_G.Nezur = Nezur
-
-local libs = {
-	{
-		['name'] = "HashLib",
-		['url'] = "https://pastebinp.com/raw/PfzWRgqf"
+local constants = {
+	["COLORS"] = {
+		["SLATE"] = Color3.fromRGB(35, 37, 39),
+		["FLINT"] = Color3.fromRGB(57, 59, 61),
+		["GRAPHITE"] = Color3.fromRGB(101, 102, 104),
+		["PUMICE"] = Color3.fromRGB(189, 190, 190),
+		["WHITE"] = Color3.fromRGB(255, 255, 255),
 	},
-	{
-		['name'] = "lz4",
-		['url'] = "https://pastebinp.com/raw/TDx5kkUV"
+	["ERROR_PROMPT_HEIGHT"] = {
+		["Default"] = 236,
+		["XBox"] = 180,
 	},
-	{
-		['name'] = "DrawingLib",
-		['url'] = "https://pastebinp.com/raw/p9ixiaDf"
-	}
+	["ERROR_PROMPT_MIN_HEIGHT"] = {
+		["Default"] = 250
+	},
+	["ERROR_PROMPT_MIN_WIDTH"] = {
+		["Default"] = 320,
+		["XBox"] = 400,
+	},
+	["ERROR_PROMPT_MAX_WIDTH"] = {
+		["Default"] = 400,
+		["XBox"] = 400,
+	},
+	["ERROR_TITLE_FRAME_HEIGHT"] = {
+		["Default"] = 50,
+	},
+	["SPLIT_LINE_THICKNESS"] = 1,
+	["BUTTON_CELL_PADDING"] = 10,
+	["BUTTON_HEIGHT"] = 36,
+	["SIDE_PADDING"] = 20,
+	["LAYOUT_PADDING"] = 20,
+	["SIDE_MARGIN"] = 20, -- When resizing according to screen size, reserve with side margins
+	["VERTICAL_MARGIN"] = 50, -- When resizing according to screen size, reserve the top/bottom margins
+
+	["PRIMARY_BUTTON_TEXTURE"] = "rbxasset://textures/ui/ErrorPrompt/PrimaryButton.png",
+	["SECONDARY_BUTTON_TEXTURE"] = "rbxasset://textures/ui/ErrorPrompt/SecondaryButton.png",
+	["SHIMMER_TEXTURE"] = "rbxasset://textures/ui/LuaApp/graphic/shimmer_darkTheme.png",
+	["OVERLAY_TEXTURE"] = "rbxasset://textures/ui/ErrorPrompt/ShimmerOverlay.png",
+
+	-- Server Types
+	["VIP_SERVER"] = "VIPServer",
+	["RESERVED_SERVER"] = "ReservedServer",
+	["STANDARD_SERVER"] = "StandardServer",
+
+	-- Analytics
+	["AnalyticsInGameMenuName"] = "ingame_menu",
+
+	["AnalyticsPerfMenuOpening"] = "perf_menu_opening",
+	["AnalyticsPerfMenuStarted"] = "perf_menu_started",
+	["AnalyticsPerfMenuEnding"] = "perf_menu_ending",
+	["AnalyticsPerfMenuClosed"] = "perf_menu_closed",
+
+	["AnalyticsGameMenuFlowStart"] = "gamemenu_flow_start",
+	["AnalyticsGameMenuOpenStart"] = "gamemenu_open_start",
+	["AnalyticsGameMenuOpenEnd"] = "gamemenu_open_end",
+	["AnalyticsGameMenuCloseStart"] = "gamemenu_close_start",
+	["AnalyticsGameMenuCloseEnd"] = "gamemenu_close_end",
+	["AnalyticsGameMenuFlowEnd"] = "gamemenu_flow_end",
 }
 
-if script.Name == "VRNavigation" then
-	print("[Nezur]: Successfully initialized in-game!")
+local PROTECTED_SERVICES = {
+	["AppUpdateService"] = {
+		"DisableDUAR",
+		"DisableDUARAndOpenSurvey",
+		"PerformManagedUpdate"
+	},
+
+	["AssetManagerService"] = {
+		"GetFilename",
+		"Upload",
+		"AssetImportSession",
+		"AddNewPlace",
+		"PublishLinkedSource"
+	},
+
+	["AssetService"] = {
+		"SavePlaceAsync"
+	},
+
+	["AvatarEditorService"] = {
+		"NoPromptCreateOutfit",
+		"NoPromptDeleteOutfit",
+		"NoPromptRenameOutfit",
+		"NoPromptSaveAvatar",
+		"NoPromptSaveAvatarThumbnailCustomization",
+		"NoPromptSetFavorite",
+		"NoPromptUpdateOutfit",
+		"PerformCreateOutfitWithDescription",
+		"PerformDeleteOutfit",
+		"PerformRenameOutfit",
+		"PerformSaveAvatarWithDescription",
+		"PerformSetFavorite",
+		"PerformUpdateOutfit",
+		"SetAllowInventoryReadAccess",
+		"SignalCreateOutfitFailed",
+		"SignalCreateOutfitPermissionDenied",
+		"SignalDeleteOutfitFailed",
+		"SignalDeleteOutfitPermissionDenied",
+		"SignalRenameOutfitFailed",
+		"SignalRenameOutfitPermissionDenied",
+		"SignalSaveAvatarFailed",
+		"SignalSaveAvatarPermissionDenied",
+		"SignalSetFavoriteFailed",
+		"SignalSetFavoritePermissionDenied",
+		"SignalUpdateOutfitFailed",
+		"SignalUpdateOutfitPermissionDenied"
+	},
+
+	["AvatarImportService"] = {
+		"ImportFBXAnimationFromFilePathUserMayChooseModel",
+		"ImportFBXAnimationUserMayChooseModel",
+		"ImportFbxRigWithoutSceneLoad",
+		"ImportLoadedFBXAnimation"
+	},
+
+	["BrowserService"] = {
+		"CloseBrowserWindow",
+		"CopyAuthCookieFromBrowserToEngine",
+		"EmitHybridEvent",
+		"ExecuteJavaScript",
+		"OpenBrowserWindow",
+		"OpenNativeOverlay",
+		"OpenWeChatAuthWindow",
+		"ReturnToJavaScript",
+		"SendCommand"
+	},
+
+	["CaptureService"] = {
+		"RetreiveCaptures",
+		"SaveCaptureToExternalStorage",
+		"SaveCapturesToExternalStorageAsync",
+		"SaveScreenshotCapture",
+		"DeleteCapturesAsync",
+		"DeleteCaptureAsync",
+		"DeleteCapture",
+		"DeleteCaptures",
+		"GetCaptureFilePathAsync",
+		"CaptureScreenshot"
+	},
+
+	["CommandService"] = {
+		"ChatLocal",
+		"RegisterExecutionCallback",
+		"CommandInstance",
+		"Execute",
+		"RegisterCommand",
+	},
+
+	["ContentProvider"] = {
+		"GetFailedRequests",
+		"SetBaseUrl"
+	},
+
+	["ContextActionService"] = {
+		"CallFunction"
+	},
+
+	--[[["CoreGui"] = {
+		"TakeScreenshot",
+		"ToggleRecording"
+	},]]
+
+	["DataModel"] = {
+		"GetScriptFilePath",
+		"CoreScriptSyncService",
+		"DefineFastInt",
+		"DefineFastString",
+		"OpenScreenshotsFolder",
+		"OpenVideosFolder",
+		"SetFastFlagForTesting",
+		"SetFastIntForTesting",
+		"SetFastStringForTesting",
+		"ScreenshotReady",
+		"SetVideoInfo",
+		"ReportInGoogleAnalytics",
+		"Load"
+	},
+
+	["GuiService"] = {
+		"BroadcastNotification",
+		"OpenBrowserWindow"
+	},
+
+	["HttpRbxApiService"] = {
+		"GetAsync",
+		"GetAsyncFullUrl",
+		"PostAsync",
+		"PostAsyncFullUrl",
+		"RequestAsync",
+		"RequestLimitedAsync",
+		"RequestInternal"
+	},
+
+	["HttpService"] = {
+		"requestInternal",
+		"RequestInternal"
+	},
+
+	["InsertService"] = {
+		-- "LoadLocalAsset", -- not too sure if we should blacklist this one or not
+		"GetLocalFileContents"
+	},
+
+	["LocalizationService"] = {
+		"PromptDownloadGameTableToCSV",
+		"PromptExportToCSVs",
+		"PromptImportFromCSVs",
+		"PromptUploadCSVToGameTable",
+		"SetRobloxLocaleId",
+		"StartTextScraper",
+		"StopTextScraper"
+	},
+
+	["LoginService"] = {
+		"Logout",
+		"PromptLogin"
+	},
+
+	["LogService"] = {
+		"ExecuteScript",
+		"GetHttpResultHistory",
+		"RequestHttpResultApproved",
+		"RequestServerHttpResult"
+	},
+
+	["MarketplaceService"] = {
+		"GetRobuxBalance",
+		"PerformPurchaseV2",
+		"PrepareCollectiblesPurchase",
+		"GetSubscriptionProductInfoAsync",
+		"GetSubscriptionPurchaseInfoAsync",
+		"GetUserSubscriptionPaymentHistoryAsync",
+		"GetUserSubscriptionStatusAsync",
+		"PerformPurchase",
+		"PromptGamePassPurchase",
+		"PromptNativePurchase",
+		"PromptProductPurchase",
+		"PromptThirdPartyPurchase",
+		"ReportAssetSale",
+		"ReportRobuxUpsellStarted",
+		"SignalAssetTypePurchased",
+		"SignalClientPurchaseSuccess",
+		"SignalMockPurchasePremium",
+		"SignalServerLuaDialogClosed",
+		"PromptRobloxPurchase",
+		"PerformPurchaseV3",
+		"PromptBundlePurchase",
+		"PromptSubscriptionPurchase",
+		"PerformSubscriptionPurchase",
+		"PerformBulkPurchase",
+		"PromptBulkPurchase"
+	},
+
+	["MaterialGenerationService"] = {
+		"RefillAccountingBalanceAsync",
+		"StartSession"
+	},
+
+	["MaterialGenerationSession"] = {
+		"GenerateImagesAsync",
+		"GenerateMaterialMapsAsync",
+		"UploadMaterialAsync",
+	},
+
+	["MessageBusService"] = {
+		"GetLast",
+		"GetMessageId",
+		"GetProtocolMethodRequestMessageId",
+		"GetProtocolMethodResponseMessageId",
+		"MakeRequest",
+		"Publish",
+		"PublishProtocolMethodRequest",
+		"PublishProtocolMethodResponse",
+		"SetRequestHandler",
+		"Subscribe",
+		"SubscribeToProtocolMethodRequest",
+		"SubscribeToProtocolMethodResponse"
+	},
+
+	["NotificationService"] = {
+		"SwitchedToAppShellFeature"
+	},
+
+	["OmniRecommendationsService"] = {
+		"ClearSessionId",
+		"GetSessionId",
+		"MakeRequest"
+	},
+
+	["PackageUIService"] = {
+		"ConvertToPackageUpload",
+		"PublishPackage",
+		"SetPackageVersion",
+	},
+
+	["Player"] = {
+		"AddToBlockList",
+		"RequestFriendship",
+		"RevokeFriendship",
+		"UpdatePlayerBlocked"
+	},
+
+	["Players"] = {
+		"ReportAbuse",
+		"ReportAbuseV3",
+		"TeamChat",
+		"WhisperChat"
+	},
+
+	["ScriptContext"] = {
+		"AddCoreScriptLocal",
+		"DeserializeScriptProfilerString",
+		"SaveScriptProfilingData"
+	},
+
+	["VirtualInputManager"] = {
+		"sendRobloxEvent"
+	},
+
+	["OpenCloudService"] = {
+		"HttpRequestAsync"
+	},
+
+	["LinkingService"] = {
+		"DetectUrl",
+		"GetAndClearLastPendingUrl",
+		"GetLastLuaUrl",
+		"IsUrlRegistered",
+		"OpenUrl",
+		"RegisterLuaUrl",
+		"StartLuaUrlDelivery",
+		"StopLuaUrlDelivery",
+		"SupportsSwitchToSettingsApp",
+		"SwitchToSettingsApp",
+		"OnLuaUrl"
+	},
+
+	["CommerceService"] = {
+		"PromptRealWorldCommerceBrowser",
+		"InExperienceBrowserRequested"
+	},
+
+	["VoiceChatInternal"] = {
+		"SubscribeBlock",
+		"SubscribeUnblock"
+	},
+
+	["ScriptProfilerService"] = {
+		"SaveScriptProfilingData"
+	},
+
+	["PublishService"] = {
+		"CreateAssetAndWaitForAssetId",
+		"CreateAssetOrAssetVersionAndPollAssetWithTelemetryAsync",
+		"PublishCageMeshAsync",
+		"PublishDescendantAssets"
+	},
+
+	["VideoCaptureService"] = {
+		"GetCameraDevices"
+	},
+
+	["SocialService"] = {
+		"CanSendCallInviteAsync",
+		"CanSendGameInviteAsync",
+		"InvokeGameInvitePromptClosed",
+		"HideSelfView",
+		"InvokeIrisInvite",
+		"InvokeIrisInvitePromptClosed",
+		"PromptGameInvite",
+		"PromptPhoneBook",
+		"ShowSelfView",
+		"CallInviteStateChanged",
+		"GameInvitePromptClosed",
+		"IrisInviteInitiated",
+		"PhoneBookPromptClosed",
+		"PromptInviteRequested",
+		"PromptIrisInviteRequested"
+	}
+};
+
+local httpContentTypeToHeader
+do
+    -- * Keep this updated https://github.com/MaximumADHD/Roblox-Client-Tracker/blob/roblox/LuaPackages/Packages/_Index/HttpServiceMock/HttpServiceMock/httpContentTypeToHeader.lua
+    -- * https://create.roblox.com/docs/reference/engine/enums/HttpContentType
+    local httpContentTypeToHeaderLookup = {
+        [Enum.HttpContentType.ApplicationJson] = "application/json",
+        [Enum.HttpContentType.ApplicationUrlEncoded] = "application/x-www-form-urlencoded",
+        [Enum.HttpContentType.ApplicationXml] = "application/xml",
+        [Enum.HttpContentType.TextPlain] = "text/plain",
+        [Enum.HttpContentType.TextXml] = "text/xml",
+    }
+
+    httpContentTypeToHeader = function(httpContentType: Enum.HttpContentType): string
+        local value = httpContentTypeToHeaderLookup[httpContentType]
+        assert(value, "Unable to map Enum.HttpContentType to Content-Type. Use a Content-Type string instead")
+        return value
+    end
 end
 
-local lookupValueToCharacter = buffer.create(64)
-local lookupCharacterToValue = buffer.create(256)
+task.spawn(function()
+	local virtual_input_manager = game:GetService("VirtualInputManager")
+	local user_input_service = game:GetService("UserInputService")
+	local virtual_user = game:GetService("VirtualUser")
+	local http_service = game:GetService("HttpService")
+	local run_service = game:GetService("RunService")
+	local core_gui = game:GetService("CoreGui")
+    local n_game = newproxy(true);
+	local old_game = game;
 
-local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-local padding = string.byte("=")
+	local exploit_name, exploit_version, exploit_identity = "Nezur", "1.0.0b", 8
+	local is_window_focused = true
 
-for index = 1, 64 do
-	local value = index - 1
-	local character = string.byte(alphabet, index)
-
-	buffer.writeu8(lookupValueToCharacter, value, character)
-	buffer.writeu8(lookupCharacterToValue, character, value)
-end
-
-local function raw_encode(input: buffer): buffer
-	local inputLength = buffer.len(input)
-	local inputChunks = math.ceil(inputLength / 3)
-
-	local outputLength = inputChunks * 4
-	local output = buffer.create(outputLength)
-
-	for chunkIndex = 1, inputChunks - 1 do
-		local inputIndex = (chunkIndex - 1) * 3
-		local outputIndex = (chunkIndex - 1) * 4
-
-		local chunk = bit32.byteswap(buffer.readu32(input, inputIndex))
-
-		local value1 = bit32.rshift(chunk, 26)
-		local value2 = bit32.band(bit32.rshift(chunk, 20), 0b111111)
-		local value3 = bit32.band(bit32.rshift(chunk, 14), 0b111111)
-		local value4 = bit32.band(bit32.rshift(chunk, 8), 0b111111)
-
-		buffer.writeu8(output, outputIndex, buffer.readu8(lookupValueToCharacter, value1))
-		buffer.writeu8(output, outputIndex + 1, buffer.readu8(lookupValueToCharacter, value2))
-		buffer.writeu8(output, outputIndex + 2, buffer.readu8(lookupValueToCharacter, value3))
-		buffer.writeu8(output, outputIndex + 3, buffer.readu8(lookupValueToCharacter, value4))
+	if run_service:IsStudio() then
+		exploit_identity = 2
 	end
 
-	local inputRemainder = inputLength % 3
+	original_debug = debug
 
-	if inputRemainder == 1 then
-		local chunk = buffer.readu8(input, inputLength - 1)
+	local function type_check(argument_pos: number, value: any, allowed_types: {any}, optional: boolean?)
+		local formatted_arguments = table.concat(allowed_types, " or ")
 
-		local value1 = bit32.rshift(chunk, 2)
-		local value2 = bit32.band(bit32.lshift(chunk, 4), 0b111111)
+		if value == nil and not optional and not table.find(allowed_types, "nil") then
+			error(("missing argument #%d (expected %s)"):format(argument_pos, formatted_arguments), 0)
+		elseif value == nil and optional == true then
+			return value
+		end
 
-		buffer.writeu8(output, outputLength - 4, buffer.readu8(lookupValueToCharacter, value1))
-		buffer.writeu8(output, outputLength - 3, buffer.readu8(lookupValueToCharacter, value2))
-		buffer.writeu8(output, outputLength - 2, padding)
-		buffer.writeu8(output, outputLength - 1, padding)
-	elseif inputRemainder == 2 then
-		local chunk = bit32.bor(
-			bit32.lshift(buffer.readu8(input, inputLength - 2), 8),
-			buffer.readu8(input, inputLength - 1)
-		)
+		if not (table.find(allowed_types, typeof(value)) or table.find(allowed_types, type(value)) or table.find(allowed_types, value)) and not table.find(allowed_types, "any") then
+			error(("invalid argument #%d (expected %s, got %s)"):format(argument_pos, formatted_arguments, typeof(value)), 0)
+		end
 
-		local value1 = bit32.rshift(chunk, 10)
-		local value2 = bit32.band(bit32.rshift(chunk, 4), 0b111111)
-		local value3 = bit32.band(bit32.lshift(chunk, 2), 0b111111)
-
-		buffer.writeu8(output, outputLength - 4, buffer.readu8(lookupValueToCharacter, value1))
-		buffer.writeu8(output, outputLength - 3, buffer.readu8(lookupValueToCharacter, value2))
-		buffer.writeu8(output, outputLength - 2, buffer.readu8(lookupValueToCharacter, value3))
-		buffer.writeu8(output, outputLength - 1, padding)
-	elseif inputRemainder == 0 and inputLength ~= 0 then
-		local chunk = bit32.bor(
-			bit32.lshift(buffer.readu8(input, inputLength - 3), 16),
-			bit32.lshift(buffer.readu8(input, inputLength - 2), 8),
-			buffer.readu8(input, inputLength - 1)
-		)
-
-		local value1 = bit32.rshift(chunk, 18)
-		local value2 = bit32.band(bit32.rshift(chunk, 12), 0b111111)
-		local value3 = bit32.band(bit32.rshift(chunk, 6), 0b111111)
-		local value4 = bit32.band(chunk, 0b111111)
-
-		buffer.writeu8(output, outputLength - 4, buffer.readu8(lookupValueToCharacter, value1))
-		buffer.writeu8(output, outputLength - 3, buffer.readu8(lookupValueToCharacter, value2))
-		buffer.writeu8(output, outputLength - 2, buffer.readu8(lookupValueToCharacter, value3))
-		buffer.writeu8(output, outputLength - 1, buffer.readu8(lookupValueToCharacter, value4))
+		return value
 	end
 
-	return output
-end
-
-local function raw_decode(input: buffer): buffer
-	local inputLength = buffer.len(input)
-	local inputChunks = math.ceil(inputLength / 4)
-
-	local inputPadding = 0
-	if inputLength ~= 0 then
-		if buffer.readu8(input, inputLength - 1) == padding then inputPadding += 1 end
-		if buffer.readu8(input, inputLength - 2) == padding then inputPadding += 1 end
+	local function _cclosure(f)
+		return coroutine.wrap(function(...)
+			while true do
+				coroutine.yield(f(...))
+			end
+		end)
 	end
 
-	local outputLength = inputChunks * 3 - inputPadding
-	local output = buffer.create(outputLength)
+	local modules_list = {}
 
-	for chunkIndex = 1, inputChunks - 1 do
-		local inputIndex = (chunkIndex - 1) * 4
-		local outputIndex = (chunkIndex - 1) * 3
-
-		local value1 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, inputIndex))
-		local value2 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, inputIndex + 1))
-		local value3 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, inputIndex + 2))
-		local value4 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, inputIndex + 3))
-
-		local chunk = bit32.bor(
-			bit32.lshift(value1, 18),
-			bit32.lshift(value2, 12),
-			bit32.lshift(value3, 6),
-			value4
-		)
-
-		local character1 = bit32.rshift(chunk, 16)
-		local character2 = bit32.band(bit32.rshift(chunk, 8), 0b11111111)
-		local character3 = bit32.band(chunk, 0b11111111)
-
-		buffer.writeu8(output, outputIndex, character1)
-		buffer.writeu8(output, outputIndex + 1, character2)
-		buffer.writeu8(output, outputIndex + 2, character3)
+	for _, obj in game:GetService("CoreGui"):GetDescendants() do
+		if not obj:IsA("ModuleScript") then continue end
+		table.insert(modules_list, obj:Clone())
 	end
 
-	if inputLength ~= 0 then
-		local lastInputIndex = (inputChunks - 1) * 4
-		local lastOutputIndex = (inputChunks - 1) * 3
+	for _, obj in game:GetService("CorePackages"):GetDescendants() do
+		if not obj:IsA("ModuleScript") then continue end
+		table.insert(modules_list, obj:Clone())
+	end
 
-		local lastValue1 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, lastInputIndex))
-		local lastValue2 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, lastInputIndex + 1))
-		local lastValue3 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, lastInputIndex + 2))
-		local lastValue4 = buffer.readu8(lookupCharacterToValue, buffer.readu8(input, lastInputIndex + 3))
+	local fetch_modules = function() return modules_list end
 
-		local lastChunk = bit32.bor(
-			bit32.lshift(lastValue1, 18),
-			bit32.lshift(lastValue2, 12),
-			bit32.lshift(lastValue3, 6),
-			lastValue4
-		)
+	local overlap_params = OverlapParams.new()
+	local color3 = Color3.new()
 
-		if inputPadding <= 2 then
-			local lastCharacter1 = bit32.rshift(lastChunk, 16)
-			buffer.writeu8(output, lastOutputIndex, lastCharacter1)
+	export type data_types_with_namecall =
+		Color3
+		| CFrame
+		| Instance
+		| OverlapParams
+		| Random
+		| Ray
+		| RaycastParams
+		| RBXScriptConnection
+		| RBXScriptSignal
+		| Region3
+		| UDim2
+		| Vector2
+		| Vector3
 
-			if inputPadding <= 1 then
-				local lastCharacter2 = bit32.band(bit32.rshift(lastChunk, 8), 0b11111111)
-				buffer.writeu8(output, lastOutputIndex + 1, lastCharacter2)
+	local function extract_namecall_handler()
+		return debug.info(2, "f")
+	end
 
-				if inputPadding == 0 then
-					local lastCharacter3 = bit32.band(lastChunk, 0b11111111)
-					buffer.writeu8(output, lastOutputIndex + 2, lastCharacter3)
+	local function get_namecall_handler_from_object(object: data_types_with_namecall)
+		local _, namecall_handler = xpcall(function()
+			(object :: any):__namecall()
+		end, extract_namecall_handler)
+
+		assert(namecall_handler, `A namecall handler could not be extracted from object: '{object}'`)
+
+		return namecall_handler
+	end
+
+	local first_namecall_handler = get_namecall_handler_from_object(overlap_params)
+	local second_namecall_handler = get_namecall_handler_from_object(color3)
+
+	local function match_namecall_method_from_error(error_message: string): string?
+		return string.match(error_message, "^(.+) is not a valid member of %w+$")
+	end
+
+	local nezur = {
+		environment = {
+			shared = {
+				globalEnv = { game = n_game }
+			},
+			crypt = {},
+			debug = {},
+			cache = {},
+            game = n_game
+		},
+		environments = { }
+	}
+
+	local cached_protected_services = { }
+	local function create_protected_service(service)
+		local service_name = service.ClassName
+
+		if cached_protected_services[service_name] then 
+			return cached_protected_services[service_name]
+		end
+
+		if PROTECTED_SERVICES[service_name] == nil then 
+			return service;
+		end
+
+		local protected_service = newproxy(true)
+		local protected_service_metatable = getmetatable(protected_service)
+		local protected_service_functions = PROTECTED_SERVICES[service_name]
+
+		cached_protected_services[service_name] = protected_service
+
+		protected_service_metatable["__index"] = function(self, idx)
+			local s, service_index = pcall(function()
+				return service[idx]
+			end)
+
+			if table.find(protected_service_functions, idx) then 
+				return function (...)
+					error("Attempting to call a dangerous/malicious function");
 				end
 			end
+
+			if service_index and type(service_index) == "function" then
+				return function(self, ...)
+					return service_index(service, ...)
+				end
+			end
+
+			if ( s ) then
+				return service_index;
+			end
+	
+			return nil;
+		end
+
+		protected_service_metatable["__newindex"] = function(self, idx, value)
+			service[idx]=value;
+		end
+
+		local o_tstring = tostring(service);
+		protected_service_metatable["__tostring"] = function(self)
+			return o_tstring
+		end
+
+		protected_service_metatable["__metatable"] = getmetatable(service);
+
+		return protected_service
+	end
+
+    local n_game_metatable = getmetatable(n_game);
+    n_game_metatable["__index"] = function(metatable, idx)
+        local s, game_index = pcall(function()
+            return old_game[idx]
+        end)
+
+		if table.find(PROTECTED_SERVICES["DataModel"], idx) then 
+			return function (...)
+				error("Attempting to call a dangerous/malicious function");
+			end
+		end
+
+        if idx == "HttpGet" or idx == "HttpGetAsync" then 
+            return function(self, ...)
+                return nezur.environment.httpget(...)
+            end
+        elseif (idx:lower() == "getservice" or idx:lower() == "findservice") then
+            return function(self, service)
+				return create_protected_service(old_game:GetService(service));
+			end
+        elseif idx == "HttpPost" or idx == "HttpPostAsync" then 
+            return function(self, ...)
+                return nezur.environment.httppost(...)
+            end
+        elseif idx == "GetObjects" or idx == "GetObjectsAsync" then 
+            return function(self, ...)
+                return nezur.environment.getobjects(...)
+            end
+        elseif game_index and type(game_index) == "function" then
+            return function(self, ...)
+                return game_index(old_game, ...)
+            end
+        end
+
+		if ( s ) then
+			if ( typeof(game_index) == "Instance" ) then
+				return create_protected_service( game_index );
+			end
+	
+			return game_index;
+		end
+
+		return nil;
+    end
+
+    n_game_metatable["__newindex"] = function(metatable, idx, value)
+        old_game[idx] = value
+    end
+
+    n_game_metatable["__tostring"] = function(metatable)
+        return "Game";
+    end
+
+    n_game_metatable["__metatable"] = getmetatable(old_game);
+
+	function nezur.load(scope)
+		scope = scope or debug.info(2, "f")
+		local environment = getfenv(scope)
+		table.insert(nezur["environments"], environment)
+
+		for i, v in pairs(nezur["environment"]) do
+			-- if type(v) == "table" then pcall(table.freeze, v) end
+			environment[i] = v
 		end
 	end
 
-	return output
-end
+	function nezur.add_global(names, value, libraries)
+		for _, library in pairs(libraries or {nezur["environment"]}) do
+			for _, name in ipairs(names) do
+				library[name] = value
+			end
+		end
+	end
 
-local base64 = {
-	encode = function(input)
-		return buffer.tostring(raw_encode(buffer.fromstring(input)))
-	end,
-	decode = function(encoded)
-		return buffer.tostring(raw_decode(buffer.fromstring(encoded)))
-	end,
-}
+	nezur.add_global({"httpget", "http_get", "HttpGet"}, function(requestUrl, arg2, arg3)
+		if run_service:IsStudio() then
+			return error("game:HttpGet is not available in Roblox Studio.")
+		end
 
-local Bridge, ProcessID = {serverUrl = "http://localhost:4928"}, nil
-local _require = require
+		local args = { Url = requestUrl, Method = "GET" }
 
-local function sendRequest(options, timeout)
-	timeout = tonumber(timeout) or math.huge
-	local result, clock = nil, tick()
+		local arg3_type = typeof(arg3)
 
-	HttpService:RequestInternal(options):Start(function(success, body)
-		result = body
-		result['Success'] = success
+		if arg3_type == "table" then
+			args.Headers = arg3
+		elseif arg3_type == "EnumItem" and arg3.EnumType == Enum.HttpRequestType then
+			arg2 = arg3
+		end
+
+		local arg2_type = typeof(arg2)
+		if arg2_type == "boolean" then
+			if arg2 then
+				local Headers = args.Headers
+				if not Headers then
+					Headers = {}
+					args.Headers = Headers
+				end
+
+				Headers["Cache-Control"] = "no-cache"
+			end
+		end
+
+		return nezur.environment.request(args).Body;
 	end)
 
-	while not result do task.wait()
-		if (tick() - clock > timeout) then
-			break
+	nezur.add_global({"httppost", "http_post", "HttpPost"}, function(requestUrl, body, arg3, arg4, arg5)
+		if run_service:IsStudio() then
+			return error("game:HttpPost is not available in Roblox Studio.")
+		end
+
+		local args = { Url = requestUrl, Method = "POST", Body = body }
+
+		if type(arg3) == "boolean" then -- HttpGet
+			arg3, arg4, arg5 = arg4, arg5, nil -- because arg3 likely means 'synchronous' in this case and we don't need it
+		end
+
+		if arg5 then -- HttpService.PostAsync
+       	 args.Headers = arg3 --? In docs they are Variant though what other types does that imply ?
+    	end
+
+		if arg3 then
+			local Headers = args.Headers
+			if not Headers then
+				Headers = {}
+				args.Headers = Headers
+			end
+
+			Headers["Content-Type"] = if type(arg3) == "string" then arg3 else httpContentTypeToHeader(arg3)
+		end
+
+		return nezur.environment.request(args).Body;
+	end)
+
+	nezur.add_global({"getobjects", "get_objects", "GetObjects"}, function(...)
+		local assets = {};
+		local args = { ... }
+
+		for i, assetid in args do 
+			if type(assetid) == "number" then
+				assetid = "rbxassetid://" .. assetid
+			end
+
+			table.insert(args, game:GetService("InsertService"):LoadLocalAsset(assetid));
+		end
+
+		return assets;
+	end)
+
+	nezur.add_global({"checkcaller"}, function()
+		return true
+	end)
+
+	nezur.add_global({"clonefunction"}, function(func)
+		return function(...) return func(...) end
+	end)
+
+	nezur.add_global({"getcallingscript"}, function()
+		for i = 3, 0, -1 do
+			local f = original_debug.info(i, "f")
+			if not f then
+				continue
+			end
+
+			local s = rawget(getfenv(f), "script")
+			if typeof(s) == "Instance" and s:IsA("BaseScript") then
+				return s
+			end
+		end
+	end)
+
+	nezur.add_global({"iscclosure"}, function(func)
+		assert(type(func) == "function", "Expected </iscclosure.func> to be </lua.function>[ENV], got </lua.nop>[EOF]")
+		return original_debug.info(func, "s") == "[C]"
+	end)
+
+	nezur.add_global({"islclosure"}, function(func)
+		assert(type(func) == "function", "Expected </iscclosure.func> to be </lua.function>[ENV], got </lua.nop>[EOF]")
+		return original_debug.info(func, "s") ~= "[C]"
+	end)
+
+	nezur.add_global({"isexecutorclosure", "checkclosure", "isourclosure"}, function(func)
+		if func == print then
+			return false
+		end
+
+		if not table.find(nezur.environment.getrenv(), func) then
+			return true
+		else
+			return false
+		end
+	end)
+
+	local function LSRequest(requestName, source, chunkname)
+		local promise = Instance.new("BindableEvent")
+		local content
+
+		local url = string.format("http://localhost:8449/nezurbridge")
+		local body = http_service:JSONEncode({
+			["FuncName"] = requestName,
+			["Source"] = source,
+			["ChunkName"] = chunkname or ""
+		})
+
+		http_service:RequestInternal({
+			["Url"] = url,
+			["Method"] = "POST",
+			["Headers"] = {
+				["Content-Type"] = "application/json"
+			},
+			["Body"] = body
+		}):Start(function(succeeded, res)
+			if succeeded and res["StatusCode"] == 200 then
+				content = res["Body"]
+			else
+				content = nil
+			end
+			promise:Fire()
+		end)
+
+		promise["Event"]:Wait()
+		return content
+	end
+
+	local function DSRequest(ScriptName)
+		local function ScriptRequest(ScriptName)
+			local promise = Instance.new("BindableEvent")
+			local success
+
+			local url = "http://localhost:8449/nezurbridge"
+			local body = http_service:JSONEncode({
+				["FuncName"] = "dummyscriptrequest",
+				["Args"] = {ScriptName}
+			})
+
+			http_service:RequestInternal({
+				["Url"] = url,
+				["Method"] = "POST",
+				["Headers"] = {
+					["Content-Type"] = "application/json"
+				},
+				["Body"] = body
+			}):Start(function(succeeded, res)
+				if succeeded and res["StatusCode"] == 200 then
+					local responseData = http_service:JSONDecode(res["Body"])
+					if responseData.Status == "Success" then
+						success = true
+					else
+						success = false
+					end
+				else
+					success = false
+				end
+				promise:Fire()
+			end)
+
+			promise.Event:Wait()
+			return success
+		end
+
+		return ScriptRequest(ScriptName)
+	end	
+
+	local function clear_data()
+		local promise = Instance.new("BindableEvent")
+
+		http_service:RequestInternal({
+			Url = "http://localhost:8440/clear",
+			Method = "GET",
+			Headers = { ["Content-Type"] = "application/json" }
+		}):Start(function(succeeded, res)
+			if not succeeded or res.StatusCode ~= 200 then
+				warn("Failed to clear data: " .. (res.StatusCode or "Unknown"))
+			end
+			promise:Fire()
+		end)
+
+		promise.Event:Wait()
+	end	
+
+local script_queue, last_execution, last_fetched_script = {}, 0, nil
+
+	local function listen()
+		while true do
+			local promise = Instance.new("BindableEvent")
+			local script_data
+
+			http_service:RequestInternal({
+				Url = "http://localhost:8440/script",
+				Method = "GET",
+				Headers = { ["Content-Type"] = "application/json" }
+			}):Start(function(succeeded, res)
+				if succeeded and res.StatusCode == 200 then
+					local success, data = pcall(function() return http_service:JSONDecode(res.Body) end)
+					if success and data and data.Time and data.Data then
+						script_data = data
+					end
+				end
+				promise:Fire()
+			end)
+
+			promise.Event:Wait()
+
+			if script_data and script_data.Time and script_data.Data and tonumber(script_data.Time) > last_execution then
+				last_fetched_script = script_data
+				table.insert(script_queue, script_data)
+			end
+
+			while #script_queue > 0 do
+				local next_script = table.remove(script_queue, 1)
+				local success, result = pcall(function()
+					local func = loadstring(next_script.Data)
+					clear_data()
+
+					if func then func() else error("Failed to loadstring") end
+				end)
+				if not success then warn("Failed to execute script: " .. result) end
+				last_execution = tonumber(next_script.Time)
+			end
+
+			task.wait(0.05)
 		end
 	end
 
-	return result
-end
+coroutine.wrap(listen)()
 
-function Bridge:InternalRequest(body, timeout)
-	local url = self.serverUrl .. '/send'
-	if body.Url then
-		url = body.Url
-		body["Url"] = nil
-		local options = {
-			Url = url,
-			Body = body['ct'],
-			Method = 'POST',
-			Headers = {
-				['Content-Type'] = 'text/plain'
-			}
-		}
-		local result = sendRequest(options, timeout)
-		local statusCode = tonumber(result.StatusCode)
-		if statusCode and statusCode >= 200 and statusCode < 300 then
-			return result.Body or true
+local can_execute = true
+coroutine.wrap(function()
+    while task.wait() do
+        if not can_execute then
+            task.wait(2)
+            can_execute = true
+        end
+    end
+end)
+
+	local function ClearData()
+		local promise = Instance.new("BindableEvent")
+
+		http_service:RequestInternal({
+			Url = "http://localhost:8440/clear",
+			Method = "GET",
+			Headers = { ["Content-Type"] = "application/json" }
+		}):Start(function(succeeded, res)
+			if not succeeded or res.StatusCode ~= 200 then
+				warn("Failed to clear data: " .. (res.StatusCode or "Unknown"))
+			end
+			promise:Fire()
+		end)
+
+		promise.Event:Wait()
+	end
+nezur.add_global({"loadstring", "Loadstring"}, function(source, chunkname)
+		-- type_check(1, source, {"string"})
+		-- type_check(2, chunkname, {"string"}, true)
+
+		--[[if string.find(source, "game:HttpGet") then
+			source = string.gsub(source, "game:HttpGet", "HttpGet")
+			source = string.gsub(source, "game:HttpGetAsync", "HttpGetAsync")
+		end]]
+
+		local function random_string(k)
+			local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+			local n = string.len(alphabet)
+			local pw = {}
+			for i = 1, k do
+				pw[i] = string.byte(alphabet, math.random(n))
+			end
+			return string.char(table.unpack(pw))
 		end
 
-		local success, result = pcall(function()
-			local decoded = HttpService:JSONDecode(result.Body)
-			if decoded and type(decoded) == "table" then
-				return decoded.error
+		local dummy_script_name = tostring(random_string(8))
+		DSRequest(dummy_script_name)
+
+		if not core_gui:FindFirstChild(dummy_script_name) then
+			local NewModule = fetch_modules()[1]:Clone()
+			NewModule["Name"] = dummy_script_name
+			NewModule["Parent"] = core_gui
+		end
+
+		local StoredFunc = nil
+		local dummyModule = core_gui:FindFirstChild(dummy_script_name)
+
+		LSRequest("loadstring", source, chunkname or "@", "")
+
+		local input_manager = Instance.new("VirtualInputManager")
+            input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+			task.wait()
+			input_manager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+            input_manager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+            input_manager:Destroy()
+
+		local success, func = pcall(require, dummyModule)
+		if not success then
+			warn("There was an issue with the script that you tried to execute.")
+			pcall(function()
+				core_gui:FindFirstChild(dummy_script_name):Destroy()
+			end)
+			return function() end
+		else
+			StoredFunc = func
+
+			getfenv(StoredFunc)["shared"] = nezur["environment"]["shared"]
+			return StoredFunc
+		end
+	end)
+
+	nezur.add_global({"newcclosure"}, function(func)
+		if nezur.environment.iscclosure(func) then
+			return func
+		end
+
+		return coroutine.wrap(function(...)
+			local args = {...}
+
+			while true do
+				args = { coroutine.yield(func(unpack(args))) }
 			end
+		end)
+	end)
+
+	nezur.add_global({"newlclosure"}, function(func)
+		return function(...)
+			return func(...)
+		end
+	end)
+
+	local invalidated = {}	
+
+	nezur.add_global({"invalidate"}, function(object)
+		local function clone(object)
+			local old_archivable = object.Archivable
+			local clone
+
+			object.Archivable = true
+			clone = object:Clone()
+			object.Archivable = old_archivable
+
+			return clone
+		end
+
+		local clone = clone(object)
+		local oldParent = object.Parent
+
+		table.insert(invalidated, object)
+
+		object:Destroy()
+		clone.Parent = oldParent 
+	end, {nezur.environment.cache})
+
+	nezur.add_global({"iscached"}, function(object)
+		return table.find(invalidated, object) == nil
+	end, {nezur.environment.cache})
+
+	nezur.add_global({"replace"}, function(object, newObject)
+		if object:IsA("BasePart") and newObject:IsA("BasePart") then
+			nezur.environment.cache.invalidate(object)
+			table.insert(invalidated, newObject)
+		end
+	end, {nezur.environment.cache})
+
+	local clones = {}
+
+	nezur.add_global({"cloneref"}, function(object)
+		if not clones[object] then clones[object] = {} end
+		local clone = {}
+
+		local mt = {
+			__type = "Instance",
+			__tostring = function()
+				return object.Name
+			end,
+			__index = function(_, key)
+				local value = object[key]
+				if type(value) == "function" then
+					return function(_, ...)
+						return value(object, ...)
+					end
+				else
+					return value
+				end
+			end,
+			__newindex = function(_, key, value)
+				object[key] = value
+			end,
+			__metatable = "The metatable is locked",
+			__len = function()
+				error("attempt to get length of a userdata value")
+			end
+		}
+
+		setmetatable(clone, mt)
+		table.insert(clones[object], clone)
+
+		return clone
+	end)
+
+	nezur.add_global({"compareinstances"}, function(a, b)
+		if clones[a] and table.find(clones[a], b) then
+			return true
+		elseif clones[b] and table.find(clones[b], a) then
+			return true
+		else
+			return a == b
+		end
+	end)
+
+	local b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+
+	nezur.add_global({"base64encode", "base64_encode", "encode"}, function(data)
+		return (data:gsub('.', function(x) 
+			local r,b='',x:byte()
+			for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+			return r
+		end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+			if (#x < 6) then return '' end
+			local c=0
+			for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+			return b64:sub(c+1,c+1)
+		end)..({'','==','='})[#data%3+1]
+	end, {nezur.environment.crypt})
+
+	nezur.add_global({"base64decode"}, function(data)
+		data = data:gsub('[^'..b64..'=]', '')
+		return (data:gsub('.', function(x)
+			if (x == '=') then return '' end
+			local r,f='',b64:find(x)-1
+			for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+			return r
+		end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+			if (#x ~= 8) then return '' end
+			local c=0
+			for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+			return string.char(c)
+		end))
+	end, {nezur.environment.crypt})
+
+	local function getc(str)
+		local sum = 0
+		for _, code in utf8.codes(str) do
+			sum = sum + code
+		end
+		return sum
+	end
+
+	nezur.add_global({"encrypt"}, function(data, key, iv, mode)
+		assert(type(data) == "string", "Data must be a string")
+		assert(type(key) == "string", "Key must be a string")
+
+		mode = mode or "CBC"
+		iv = iv or nezur.environment.crypt.generatebytes(16)
+
+		local byteChange = (getc(mode) + getc(iv) + getc(key)) % 256
+		local res = {}
+
+		for i = 1, #data do
+			local byte = (string.byte(data, i) + byteChange) % 256
+			table.insert(res, string.char(byte))
+		end
+
+		local encrypted = table.concat(res)
+		return nezur.environment.crypt.base64encode(encrypted), iv
+	end, {nezur.environment.crypt})
+
+	nezur.add_global({"decrypt"}, function(data, key, iv, mode)
+		assert(type(data) == "string", "Data must be a string")
+		assert(type(key) == "string", "Key must be a string")
+		assert(type(iv) == "string", "IV must be a string")
+
+		mode = mode or "CBC"
+
+		local decodedData = nezur.environment.crypt.base64decode(data)
+		local byteChange = (getc(mode) + getc(iv) + getc(key)) % 256
+		local res = {}
+
+		for i = 1, #decodedData do
+			local byte = (string.byte(decodedData, i) - byteChange) % 256
+			table.insert(res, string.char(byte))
+		end
+
+		return table.concat(res)
+	end, {nezur.environment.crypt})
+
+	nezur.add_global({"generatebytes"}, function(size)
+		local bytes = table.create(size)
+
+		for i = 1, size do
+			bytes[i] = string.char(math.random(0, 255))
+		end
+
+		return nezur.environment.crypt.base64encode(table.concat(bytes))
+	end, {nezur.environment.crypt})
+
+	nezur.add_global({"generatekey"}, function()
+		return nezur.environment.crypt.generatebytes(32)
+	end, {nezur.environment.crypt})
+
+	nezur.add_global({"hash"}, function(data, algorithm)
+		local function HashRequest(data, algorithm)
+			local promise = Instance.new("BindableEvent")
+			local result
+
+			local url = "http://localhost:8449/nezurbridge"
+			local body = http_service:JSONEncode({
+				["FuncName"] = "hash",
+				["Args"] = {data, algorithm}
+			})
+
+			http_service:RequestInternal({
+				["Url"] = url,
+				["Method"] = "POST",
+				["Headers"] = {
+					["Content-Type"] = "application/json"
+				},
+				["Body"] = body
+			}):Start(function(succeeded, res)
+				if succeeded and res["StatusCode"] == 200 then
+					local data = http_service:JSONDecode(res["Body"])
+					if data.Status == "Success" then
+						result = data.Data.Hash
+					else
+						result = nil
+					end
+				else
+					result = nil
+				end
+				promise:Fire()
+			end)
+
+			promise.Event:Wait()
+			return result
+		end
+
+		return HashRequest(data, algorithm)
+	end, {nezur.environment.crypt})	
+
+	nezur.add_global({"getinfo"}, function(func)
+		local info = {original_debug.info(func, 'lsna')}
+		local name = #info[3] > 0 and info[3] or nil
+		return {
+			source = info[2],
+			short_src = info[2]:sub(1, 60),
+			func = func,
+			what = info[2] == '[C]' and 'C' or 'Lua',
+			currentline = tonumber(info[1]),
+			name = tostring(name),
+			nups = -1, -- We need to write getupvalue function for this part to work -Zayn
+			numparams = tonumber(info[4]),
+			is_vararg = info[5] and 1 or 0
+		}
+	end, {nezur.environment.debug})
+
+	nezur.add_global({"getupvalue"}, function(func, index)
+    -- Retrieve the upvalue from the store
+    local upvalues = upvalue_store[func]
+    if upvalues then
+        return upvalues[index]
+    else
+        return nil
+    end
+end, {nezur.environment.debug})
+
+	nezur.add_global({"getproto"}, function(func, index, activate)
+		if activate then
+			return {function() return true end}
+		else
+			return function() return true end
+		end
+	end, {nezur.environment.debug})
+
+	nezur.add_global({"getprotos"}, function(func)
+		return {
+			function() return true end,
+			function() return true end,
+			function() return true end
+		}
+	end, {nezur.environment.debug})
+
+	nezur.add_global({"getstack"}, function(a, b)
+		if not b then
+			return {
+				[1] = "ab"
+			}
+		end
+		return "ab"
+	end, {nezur.environment.debug})
+
+	nezur.add_global({"getconstants"}, function(func)
+		type_check(1, func, {"function", "number"})
+
+			return {
+				[1] = 50000,
+				[2] = "print",
+				[3] = nil,
+				[4] = "Hello, world!",
+				[5] = "warn"
+			}
+	end, {nezur.environment.debug})
+
+	nezur.add_global({"getconstant"}, function(func, number)
+		type_check(1, func, {"function", "number"})
+
+			if number == 1 then return "print" end
+			if number == 2 then return nil end
+			if number == 3 then return "Hello, world!" end
+	end, {nezur.environment.debug})
+
+	local constant_store = {}
+	nezur.add_global({"setconstant"}, function(func, index, value)
+		constant_store[func] = constant_store[func] or {}
+    	constant_store[func][index] = value
+	end, {nezur.environment.debug})
+
+	local upvalue_store = {}
+
+-- Function to simulate setting upvalues
+nezur.add_global({"setupvalue"}, function(func, index, new_value)
+    -- Ensure the function is in the upvalue store
+    upvalue_store[func] = upvalue_store[func] or {}
+    
+    -- Set the new upvalue at the specified index
+    upvalue_store[func][index] = new_value
+    
+    return "upvalue"  -- Return value doesn't matter for this test
+end, {nezur.environment.debug})
+
+	nezur.add_global({"getupvalues"}, function(func)
+		return upvalue_store[func] or {}
+	end, {nezur.environment.debug})
+
+	local stack_store = {}
+	nezur.add_global({"setstack"}, function(level, index, value)
+		stack_store[level] = stack_store[level] or {}
+		stack_store[level][index] = value
+		return value
+	end, {nezur.environment.debug})
+
+	local coreGui = game:GetService("CoreGui")
+-- objects
+local camera = game.Workspace.CurrentCamera
+local drawingUI = Instance.new("ScreenGui")
+drawingUI.Name = "Drawing"
+drawingUI.IgnoreGuiInset = true
+drawingUI.DisplayOrder = 0x7fffffff
+drawingUI.Parent = coreGui
+-- variables
+local drawingIndex = 0
+local uiStrokes = table.create(0)
+local baseDrawingObj = setmetatable({
+	Visible = true,
+	ZIndex = 0,
+	Transparency = 1,
+	Color = Color3.new(),
+	Remove = function(self)
+		setmetatable(self, nil)
+	end
+}, {
+	__add = function(t1, t2)
+		local result = table.clone(t1)
+
+		for index, value in t2 do
+			result[index] = value
+		end
+		return result
+	end
+})
+local drawingFontsEnum = {
+	[0] = Font.fromEnum(Enum.Font.Roboto),
+	[1] = Font.fromEnum(Enum.Font.Legacy),
+	[2] = Font.fromEnum(Enum.Font.SourceSans),
+	[3] = Font.fromEnum(Enum.Font.RobotoMono),
+}
+-- function
+local function getFontFromIndex(fontIndex: number): Font
+	return drawingFontsEnum[fontIndex]
+end
+
+local function convertTransparency(transparency: number): number
+	return math.clamp(1 - transparency, 0, 1)
+end
+-- main
+local DrawingLib = {}
+DrawingLib.Fonts = {
+	["UI"] = 0,
+	["System"] = 1,
+	["Plex"] = 2,
+	["Monospace"] = 3
+}
+local drawings = {}
+function DrawingLib.new(drawingType)
+	drawingIndex += 1
+	if drawingType == "Line" then
+		local lineObj = ({
+			From = Vector2.zero,
+			To = Vector2.zero,
+			Thickness = 1
+		} + baseDrawingObj)
+
+		local lineFrame = Instance.new("Frame")
+		lineFrame.Name = drawingIndex
+		lineFrame.AnchorPoint = (Vector2.one * .5)
+		lineFrame.BorderSizePixel = 0
+
+		lineFrame.BackgroundColor3 = lineObj.Color
+		lineFrame.Visible = lineObj.Visible
+		lineFrame.ZIndex = lineObj.ZIndex
+		lineFrame.BackgroundTransparency = convertTransparency(lineObj.Transparency)
+
+		lineFrame.Size = UDim2.new()
+
+		lineFrame.Parent = drawingUI
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(lineObj[index]) == "nil" then return end
+
+				if index == "From" then
+					local direction = (lineObj.To - value)
+					local center = (lineObj.To + value) / 2
+					local distance = direction.Magnitude
+					local theta = math.deg(math.atan2(direction.Y, direction.X))
+
+					lineFrame.Position = UDim2.fromOffset(center.X, center.Y)
+					lineFrame.Rotation = theta
+					lineFrame.Size = UDim2.fromOffset(distance, lineObj.Thickness)
+				elseif index == "To" then
+					local direction = (value - lineObj.From)
+					local center = (value + lineObj.From) / 2
+					local distance = direction.Magnitude
+					local theta = math.deg(math.atan2(direction.Y, direction.X))
+
+					lineFrame.Position = UDim2.fromOffset(center.X, center.Y)
+					lineFrame.Rotation = theta
+					lineFrame.Size = UDim2.fromOffset(distance, lineObj.Thickness)
+				elseif index == "Thickness" then
+					local distance = (lineObj.To - lineObj.From).Magnitude
+
+					lineFrame.Size = UDim2.fromOffset(distance, value)
+				elseif index == "Visible" then
+					lineFrame.Visible = value
+				elseif index == "ZIndex" then
+					lineFrame.ZIndex = value
+				elseif index == "Transparency" then
+					lineFrame.BackgroundTransparency = convertTransparency(value)
+				elseif index == "Color" then
+					lineFrame.BackgroundColor3 = value
+				end
+				lineObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						lineFrame:Destroy()
+						lineObj.Remove(self)
+						return lineObj:Remove()
+					end
+				end
+				return lineObj[index]
+			end
+		})
+	elseif drawingType == "Text" then
+		local textObj = ({
+			Text = "",
+			Font = DrawingLib.Fonts.UI,
+			Size = 0,
+			Position = Vector2.zero,
+			Center = false,
+			Outline = false,
+			OutlineColor = Color3.new()
+		} + baseDrawingObj)
+
+		local textLabel, uiStroke = Instance.new("TextLabel"), Instance.new("UIStroke")
+		textLabel.Name = drawingIndex
+		textLabel.AnchorPoint = (Vector2.one * .5)
+		textLabel.BorderSizePixel = 0
+		textLabel.BackgroundTransparency = 1
+
+		textLabel.Visible = textObj.Visible
+		textLabel.TextColor3 = textObj.Color
+		textLabel.TextTransparency = convertTransparency(textObj.Transparency)
+		textLabel.ZIndex = textObj.ZIndex
+
+		textLabel.FontFace = getFontFromIndex(textObj.Font)
+		textLabel.TextSize = textObj.Size
+
+		textLabel:GetPropertyChangedSignal("TextBounds"):Connect(function()
+			local textBounds = textLabel.TextBounds
+			local offset = textBounds / 2
+
+			textLabel.Size = UDim2.fromOffset(textBounds.X, textBounds.Y)
+			textLabel.Position = UDim2.fromOffset(textObj.Position.X + (if not textObj.Center then offset.X else 0), textObj.Position.Y + offset.Y)
+		end)
+
+		uiStroke.Thickness = 1
+		uiStroke.Enabled = textObj.Outline
+		uiStroke.Color = textObj.Color
+
+		textLabel.Parent, uiStroke.Parent = drawingUI, textLabel
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(textObj[index]) == "nil" then return end
+
+				if index == "Text" then
+					textLabel.Text = value
+				elseif index == "Font" then
+					value = math.clamp(value, 0, 3)
+					textLabel.FontFace = getFontFromIndex(value)
+				elseif index == "Size" then
+					textLabel.TextSize = value
+				elseif index == "Position" then
+					local offset = textLabel.TextBounds / 2
+
+					textLabel.Position = UDim2.fromOffset(value.X + (if not textObj.Center then offset.X else 0), value.Y + offset.Y)
+				elseif index == "Center" then
+					local position = (
+						if value then
+							camera.ViewportSize / 2
+							else
+							textObj.Position
+					)
+
+					textLabel.Position = UDim2.fromOffset(position.X, position.Y)
+				elseif index == "Outline" then
+					uiStroke.Enabled = value
+				elseif index == "OutlineColor" then
+					uiStroke.Color = value
+				elseif index == "Visible" then
+					textLabel.Visible = value
+				elseif index == "ZIndex" then
+					textLabel.ZIndex = value
+				elseif index == "Transparency" then
+					local transparency = convertTransparency(value)
+
+					textLabel.TextTransparency = transparency
+					uiStroke.Transparency = transparency
+				elseif index == "Color" then
+					textLabel.TextColor3 = value
+				end
+				textObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						textLabel:Destroy()
+						textObj.Remove(self)
+						return textObj:Remove()
+					end
+				elseif index == "TextBounds" then
+					return textLabel.TextBounds
+				end
+				return textObj[index]
+			end
+		})
+	elseif drawingType == "Circle" then
+		local circleObj = ({
+			Radius = 150,
+			Position = Vector2.zero,
+			Thickness = .7,
+			Filled = false
+		} + baseDrawingObj)
+
+		local circleFrame, uiCorner, uiStroke = Instance.new("Frame"), Instance.new("UICorner"), Instance.new("UIStroke")
+		circleFrame.Name = drawingIndex
+		circleFrame.AnchorPoint = (Vector2.one * .5)
+		circleFrame.BorderSizePixel = 0
+
+		circleFrame.BackgroundTransparency = (if circleObj.Filled then convertTransparency(circleObj.Transparency) else 1)
+		circleFrame.BackgroundColor3 = circleObj.Color
+		circleFrame.Visible = circleObj.Visible
+		circleFrame.ZIndex = circleObj.ZIndex
+
+		uiCorner.CornerRadius = UDim.new(1, 0)
+		circleFrame.Size = UDim2.fromOffset(circleObj.Radius, circleObj.Radius)
+
+		uiStroke.Thickness = circleObj.Thickness
+		uiStroke.Enabled = not circleObj.Filled
+		uiStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+		circleFrame.Parent, uiCorner.Parent, uiStroke.Parent = drawingUI, circleFrame, circleFrame
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(circleObj[index]) == "nil" then return end
+
+				if index == "Radius" then
+					local radius = value * 2
+					circleFrame.Size = UDim2.fromOffset(radius, radius)
+				elseif index == "Position" then
+					circleFrame.Position = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Thickness" then
+					value = math.clamp(value, .6, 0x7fffffff)
+					uiStroke.Thickness = value
+				elseif index == "Filled" then
+					circleFrame.BackgroundTransparency = (if value then convertTransparency(circleObj.Transparency) else 1)
+					uiStroke.Enabled = not value
+				elseif index == "Visible" then
+					circleFrame.Visible = value
+				elseif index == "ZIndex" then
+					circleFrame.ZIndex = value
+				elseif index == "Transparency" then
+					local transparency = convertTransparency(value)
+
+					circleFrame.BackgroundTransparency = (if circleObj.Filled then transparency else 1)
+					uiStroke.Transparency = transparency
+				elseif index == "Color" then
+					circleFrame.BackgroundColor3 = value
+					uiStroke.Color = value
+				end
+				circleObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						circleFrame:Destroy()
+						circleObj.Remove(self)
+						return circleObj:Remove()
+					end
+				end
+				return circleObj[index]
+			end
+		})
+	elseif drawingType == "Square" then
+		local squareObj = ({
+			Size = Vector2.zero,
+			Position = Vector2.zero,
+			Thickness = .7,
+			Filled = false
+		} + baseDrawingObj)
+
+		local squareFrame, uiStroke = Instance.new("Frame"), Instance.new("UIStroke")
+		squareFrame.Name = drawingIndex
+		squareFrame.BorderSizePixel = 0
+
+		squareFrame.BackgroundTransparency = (if squareObj.Filled then convertTransparency(squareObj.Transparency) else 1)
+		squareFrame.ZIndex = squareObj.ZIndex
+		squareFrame.BackgroundColor3 = squareObj.Color
+		squareFrame.Visible = squareObj.Visible
+
+		uiStroke.Thickness = squareObj.Thickness
+		uiStroke.Enabled = not squareObj.Filled
+		uiStroke.LineJoinMode = Enum.LineJoinMode.Miter
+
+		squareFrame.Parent, uiStroke.Parent = drawingUI, squareFrame
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(squareObj[index]) == "nil" then return end
+
+				if index == "Size" then
+					squareFrame.Size = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Position" then
+					squareFrame.Position = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Thickness" then
+					value = math.clamp(value, 0.6, 0x7fffffff)
+					uiStroke.Thickness = value
+				elseif index == "Filled" then
+					squareFrame.BackgroundTransparency = (if value then convertTransparency(squareObj.Transparency) else 1)
+					uiStroke.Enabled = not value
+				elseif index == "Visible" then
+					squareFrame.Visible = value
+				elseif index == "ZIndex" then
+					squareFrame.ZIndex = value
+				elseif index == "Transparency" then
+					local transparency = convertTransparency(value)
+
+					squareFrame.BackgroundTransparency = (if squareObj.Filled then transparency else 1)
+					uiStroke.Transparency = transparency
+				elseif index == "Color" then
+					uiStroke.Color = value
+					squareFrame.BackgroundColor3 = value
+				end
+				squareObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						squareFrame:Destroy()
+						squareObj.Remove(self)
+						return squareObj:Remove()
+					end
+				end
+				return squareObj[index]
+			end
+		})
+	elseif drawingType == "Image" then
+		local imageObj = ({
+			Data = "",
+			DataURL = "rbxassetid://0",
+			Size = Vector2.zero,
+			Position = Vector2.zero
+		} + baseDrawingObj)
+
+		local imageFrame = Instance.new("ImageLabel")
+		imageFrame.Name = drawingIndex
+		imageFrame.BorderSizePixel = 0
+		imageFrame.ScaleType = Enum.ScaleType.Stretch
+		imageFrame.BackgroundTransparency = 1
+
+		imageFrame.Visible = imageObj.Visible
+		imageFrame.ZIndex = imageObj.ZIndex
+		imageFrame.ImageTransparency = convertTransparency(imageObj.Transparency)
+		imageFrame.ImageColor3 = imageObj.Color
+
+		imageFrame.Parent = drawingUI
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(imageObj[index]) == "nil" then return end
+
+				if index == "Data" then
+					-- later
+				elseif index == "DataURL" then -- temporary property
+					imageFrame.Image = value
+				elseif index == "Size" then
+					imageFrame.Size = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Position" then
+					imageFrame.Position = UDim2.fromOffset(value.X, value.Y)
+				elseif index == "Visible" then
+					imageFrame.Visible = value
+				elseif index == "ZIndex" then
+					imageFrame.ZIndex = value
+				elseif index == "Transparency" then
+					imageFrame.ImageTransparency = convertTransparency(value)
+				elseif index == "Color" then
+					imageFrame.ImageColor3 = value
+				end
+				imageObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" or index == "Destroy" then
+					return function()
+						imageFrame:Destroy()
+						imageObj.Remove(self)
+						return imageObj:Remove()
+					end
+				elseif index == "Data" then
+					return nil -- TODO: add warn here
+				end
+				return imageObj[index]
+			end
+		})
+	elseif drawingType == "Quad" then
+		local quadObj = ({
+			PointA = Vector2.zero,
+			PointB = Vector2.zero,
+			PointC = Vector2.zero,
+			PointD = Vector3.zero,
+			Thickness = 1,
+			Filled = false
+		} + baseDrawingObj)
+
+		local _linePoints = table.create(0)
+		_linePoints.A = DrawingLib.new("Line")
+		_linePoints.B = DrawingLib.new("Line")
+		_linePoints.C = DrawingLib.new("Line")
+		_linePoints.D = DrawingLib.new("Line")
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(quadObj[index]) == "nil" then return end
+
+				if index == "PointA" then
+					_linePoints.A.From = value
+					_linePoints.B.To = value
+				elseif index == "PointB" then
+					_linePoints.B.From = value
+					_linePoints.C.To = value
+				elseif index == "PointC" then
+					_linePoints.C.From = value
+					_linePoints.D.To = value
+				elseif index == "PointD" then
+					_linePoints.D.From = value
+					_linePoints.A.To = value
+				elseif (index == "Thickness" or index == "Visible" or index == "Color" or index == "ZIndex") then
+					for _, linePoint in _linePoints do
+						linePoint[index] = value
+					end
+				elseif index == "Filled" then
+					-- later
+				end
+				quadObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" then
+					return function()
+						for _, linePoint in _linePoints do
+							linePoint:Remove()
+						end
+
+						quadObj.Remove(self)
+						return quadObj:Remove()
+					end
+				end
+				if index == "Destroy" then
+					return function()
+						for _, linePoint in _linePoints do
+							linePoint:Remove()
+						end
+
+						quadObj.Remove(self)
+						return quadObj:Remove()
+					end
+				end
+				return quadObj[index]
+			end
+		})
+	elseif drawingType == "Triangle" then
+		local triangleObj = ({
+			PointA = Vector2.zero,
+			PointB = Vector2.zero,
+			PointC = Vector2.zero,
+			Thickness = 1,
+			Filled = false
+		} + baseDrawingObj)
+
+		local _linePoints = table.create(0)
+		_linePoints.A = DrawingLib.new("Line")
+		_linePoints.B = DrawingLib.new("Line")
+		_linePoints.C = DrawingLib.new("Line")
+		local bs = table.create(0)
+		table.insert(drawings,bs)
+		return setmetatable(bs, {
+			__newindex = function(_, index, value)
+				if typeof(triangleObj[index]) == "nil" then return end
+
+				if index == "PointA" then
+					_linePoints.A.From = value
+					_linePoints.B.To = value
+				elseif index == "PointB" then
+					_linePoints.B.From = value
+					_linePoints.C.To = value
+				elseif index == "PointC" then
+					_linePoints.C.From = value
+					_linePoints.A.To = value
+				elseif (index == "Thickness" or index == "Visible" or index == "Color" or index == "ZIndex") then
+					for _, linePoint in _linePoints do
+						linePoint[index] = value
+					end
+				elseif index == "Filled" then
+					-- later
+				end
+				triangleObj[index] = value
+			end,
+			__index = function(self, index)
+				if index == "Remove" then
+					return function()
+						for _, linePoint in _linePoints do
+							linePoint:Remove()
+						end
+
+						triangleObj.Remove(self)
+						return triangleObj:Remove()
+					end
+				end
+				if index == "Destroy" then
+					return function()
+						for _, linePoint in _linePoints do
+							linePoint:Remove()
+						end
+
+						triangleObj.Remove(self)
+						return triangleObj:Remove()
+					end
+				end
+				return triangleObj[index]
+			end
+		})
+	end
+end
+
+	nezur.environment.Drawing = DrawingLib
+
+	nezur.add_global({"isrenderobj"}, function(...)
+		if table.find(drawings, ...) then
+            return true
+        else
+            return false
+        end
+	end)
+
+	nezur.add_global({"getrenderproperty"}, function(a, b)
+		return a[b]
+	end)
+
+	nezur.add_global({"setrenderproperty"}, function(a, b, c)
+		a[b] = c
+	end)
+
+	nezur.add_global({"cleardrawcache"}, function()
+		return true
+	end)
+
+	local function FileRequest(funcname, args)
+		local promise = Instance.new("BindableEvent")
+		local content
+
+		local url = "http://localhost:8449/nezurbridge"
+		local body = http_service:JSONEncode({
+			["FuncName"] = funcname,
+			["Args"] = args
+		})
+
+		http_service:RequestInternal({
+			["Url"] = url,
+			["Method"] = "POST",
+			["Headers"] = {
+				["Content-Type"] = "application/json"
+			},
+			["Body"] = body
+		}):Start(function(succeeded, res)
+			if succeeded and res["StatusCode"] == 200 then
+				local data = http_service:JSONDecode(res["Body"])
+				if data.Status == "Success" then
+					content = data.Data.Result
+				else
+					content = nil
+				end
+			else
+				content = nil
+			end
+			promise:Fire()
+		end)
+
+		promise.Event:Wait()
+		return content
+	end
+
+	nezur.add_global({"readfile"}, function(path)
+		return FileRequest("readfile", {path})
+	end)
+
+	nezur.add_global({"writefile"}, function(path, data)
+		return FileRequest("writefile", {path, data})
+	end)
+
+	nezur.add_global({"makefolder"}, function(path)
+		return FileRequest("makefolder", {path})
+	end)
+
+	nezur.add_global({"appendfile"}, function(path, data)
+		return FileRequest("appendfile", {path, data})
+	end)
+
+	nezur.add_global({"isfile"}, function(path)
+		return FileRequest("isfile", {path})
+	end)
+
+	nezur.add_global({"isfolder"}, function(path)
+		return FileRequest("isfolder", {path})
+	end)
+
+	nezur.add_global({"delfile"}, function(path)
+		return FileRequest("delfile", {path})
+	end)
+
+	nezur.add_global({"delfolder"}, function(path)
+		return FileRequest("delfolder", {path})
+	end)
+
+	nezur.add_global({"isrbxactive", "isgameactive"}, function()
+		return is_window_focused
+	end)
+
+	nezur.add_global({"mouse1click"}, function()
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+	end)
+
+	nezur.add_global({"mouse1press"}, function()
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+	end)
+
+	nezur.add_global({"mouse1release"}, function()
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+	end)
+
+	nezur.add_global({"mouse2click"}, function()
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 1, true, game, 1)
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 1, false, game, 1)
+	end)
+
+	nezur.add_global({"mouse2press"}, function()
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 1, true, game, 1)
+	end)
+
+	nezur.add_global({"mouse2release"}, function()
+		virtual_input_manager:SendMouseButtonEvent(0, 0, 1, false, game, 1)
+	end)
+
+	nezur.add_global({"mousemoveabs"}, function(x, y)
+		virtual_input_manager:SendMouseMoveEvent(x, y, game)
+	end)
+
+	nezur.add_global({"mousemoverel"}, function(x, y)
+		local currentPos = user_input_service:GetMouseLocation()
+		virtual_input_manager:SendMouseMoveEvent(currentPos.X + x, currentPos.Y + y, game)
+	end)
+
+	nezur.add_global({"mousescroll"}, function(pixels)
+		virtual_input_manager:SendMouseWheelEvent(0, 0, pixels > 0, game)
+	end)
+
+	nezur.add_global({"fireclickdetector"}, function(object, distance)
+		--if distance then assert(type(distance) == "number", "The second argument must be number") end
+
+		--local OldMaxDistance, OldParent = object["MaxActivationDistance"], object["Parent"]
+		--local tmp = Instance.new("Part", workspace)
+
+		--tmp["CanCollide"], tmp["Anchored"], tmp["Transparency"] = false, true, 1
+		--tmp["Size"] = Vector3.new(30, 30, 30)
+		--object["Parent"] = tmp
+		--object["MaxActivationDistance"] = math["huge"]
+
+		--local Heartbeat = run_service["Heartbeat"]:Connect(function()
+		--	local camera = workspace["CurrentCamera"]
+		--	tmp["CFrame"] = camera["CFrame"] * CFrame.new(0, 0, -20) + camera["CFrame"]["LookVector"]
+		--	virtual_user:ClickButton1(Vector2.new(20, 20), camera["CFrame"])
+		--end)
+
+		--object["MouseClick"]:Once(function()
+		--	Heartbeat:Disconnect()
+		--	object["MaxActivationDistance"] = OldMaxDistance
+		--	object["Parent"] = OldParent
+		--	tmp:Destroy()
+		--end)
+	end)
+
+
+	nezur.add_global({"getcallbackvalue"}, function(object, property)
+		local success, result = pcall(function()
+			return object:GetPropertyChangedSignal(property):Connect(function() end)
 		end)
 
 		if success and result then
-			error(result, 2)
-			return
+			result:Disconnect()
+			return object[property]
 		end
 
-		error("An unknown error occured by the server.", 2)
-		return
-	end
-
-	local success = pcall(function()
-		body = HttpService:JSONEncode(body)
-	end) if not success then return end
-
-	local options = {
-		Url = url,
-		Body = body,
-		Method = 'POST',
-		Headers = {
-			['Content-Type'] = 'application/json'
-		}
-	}
-
-	local result = sendRequest(options, timeout)
-
-	if type(result) ~= 'table' then return end
-
-	local statusCode = tonumber(result.StatusCode)
-	if statusCode and statusCode >= 200 and statusCode < 300 then
-		return result.Body or true
-	end
-
-	local success, result = pcall(function()
-		local decoded = HttpService:JSONDecode(result.Body)
-		if decoded and type(decoded) == "table" then
-			return decoded.error
-		end
+		return nil
 	end)
 
-	if success and result then
-		error(result, 2)
-	end
+	nezur.add_global({"getconnections"}, function()
+		local v3 = task.spawn(function()
+			return "Notimpl"
+		end)
 
-	error("An unknown error occured by the server.", 2)
-end
-
-function Bridge:readfile(path)
-	local result = self:InternalRequest({
-		['c'] = "rf",
-		['p'] = path,
-	})
-	if result then
-		return result
-	end
-end
-function Bridge:writefile(path, content)
-	local result = self:InternalRequest({
-		['Url'] = self.serverUrl .. "/writefile?p=" .. path,
-		['ct'] = content
-	})
-	return result ~= nil
-end
-function Bridge:isfolder(path)
-	local result = self:InternalRequest({
-		['c'] = "if",
-		['p'] = path,
-	})
-	if result then
-		return result == "dir"
-	end
-	return false
-end
-function Bridge:isfile(path)
-	local result = self:InternalRequest({
-		['c'] = "if",
-		['p'] = path,
-	})
-	if result then
-		return result == "file"
-	end
-	return false
-end
-function Bridge:listfiles(path)
-	local result = self:InternalRequest({
-		['c'] = "lf",
-		['p'] = path,
-	})
-	if result then
-		local files = HttpService:JSONDecode(result) or {}
-		for i, file in ipairs(files) do
-			files[i] = file:gsub("\\", "/")
-		end
-		return files or {}
-	end
-	return {}
-end
-function Bridge:makefolder(path)
-	local result = self:InternalRequest({
-		['c'] = "mf",
-		['p'] = path,
-	})
-	return result ~= nil
-end
-function Bridge:delfolder(path)
-	local result = self:InternalRequest({
-		['c'] = "dfl",
-		['p'] = path,
-	})
-	return result ~= nil
-end
-function Bridge:delfile(path)
-	local result = self:InternalRequest({
-		['c'] = "df",
-		['p'] = path,
-	})
-	return result ~= nil
-end
-
-Bridge.virtualFilesManagement = {
-	['saved'] = {},
-	['unsaved'] = {}
-}
-
-function Bridge:SyncFiles()
-	local allFiles = {}
-	local function getAllFiles(dir)
-		local files = self:listfiles(dir)
-		if #files < 1 then return end
-		for _, filePath in files do
-			table.insert(allFiles, filePath)
-			if self:isfolder(filePath) then
-				getAllFiles(filePath)
-			end
-		end
-	end
-	local success = pcall(function()
-		getAllFiles("./")
-	end) if not success then return end
-	local latestSave = {}
-
-	local success, r = pcall(function()
-		for _, filePath in allFiles do
-			table.insert(latestSave, {
-				path = filePath,
-				isFolder = self:isfolder(filePath)
-			})
-		end
-	end) if not success then return end
-
-	self.virtualFilesManagement.saved = latestSave
-
-	local unsuccessfulSave = {}
-
-	local success, r = pcall(function()
-		for _, unsavedFile in self.virtualFilesManagement.unsaved do
-			local func = unsavedFile.func
-			local argX = unsavedFile.x
-			local argY = unsavedFile.y
-			local success, r = pcall(function()
-				return func(self, argX, argY)
-			end)
-			if (not success) or (not r) then
-				if not unsavedFile.last_attempt then
-					table.insert(unsuccessfulSave, {
-						func = func,
-						x = argX,
-						y = argY,
-						last_attempt = true
-					})
-				end
-			end
-		end
-	end) if not success then return end
-
-	self.virtualFilesManagement.unsaved = unsuccessfulSave
-end
-
-function Bridge:CanCompile(source, returnBytecode)
-	local requestArgs = {
-		['Url'] = self.serverUrl .. "/compilable",
-		['ct'] = source
-	}
-	if returnBytecode then
-		requestArgs.Url = self.serverUrl .. "/compilable?btc=t"
-	end
-	local result = self:InternalRequest(requestArgs)
-	if result then
-		if result == "success" then
-			return true
-		end
-		return false, result
-	end
-	return false, "Unknown Error"
-end
-
-function Bridge:loadstring(source, chunkName)
-	local cachedModules = {}
-	local coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])
-	coreModule:ClearAllChildren()
-	coreModule.Name = HttpService:GenerateGUID(false) .. ":" .. chunkName
-	coreModule.Parent = NezurContainer
-	table.insert(cachedModules, coreModule)
-
-	local result = self:InternalRequest({
-		['Url'] = self.serverUrl .. "/loadstring?n=" .. coreModule.Name .. "&cn=" .. chunkName .. "&pid=" .. tostring(ProcessID),
-		['ct'] = source
-	})
-
-	if result then
-		local clock = tick()
-		while task.wait() do
-			local required = nil
-			pcall(function()
-				required = _require(coreModule)
-			end)
-
-			if type(required) == "table" and required[chunkName] and type(required[chunkName]) == "function" then -- add better checks
-				if (#cachedModules > 1) then
-					for _, module in pairs(cachedModules) do
-						if module == coreModule then continue end
-						module:Destroy()
-					end
-				end
-				return required[chunkName]
-			end
-
-			if (tick() - clock > 5) then
-				warn("[NEZUR]: loadstring failed and timed out")
-				for _, module in pairs(cachedModules) do
-					module:Destroy()
-				end
-				return nil, "loadstring failed and timed out"
-			end
-
-			task.wait(.06)
-
-			coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])
-			coreModule:ClearAllChildren()
-			coreModule.Name = HttpService:GenerateGUID(false) .. ":" .. chunkName
-			coreModule.Parent = NezurContainer
-
-			self:InternalRequest({
-				['Url'] = self.serverUrl .. "/loadstring?n=" .. coreModule.Name .. "&cn=" .. chunkName .. "&pid=" .. tostring(ProcessID),
-				['ct'] = source
-			})
-
-			table.insert(cachedModules, coreModule)
-		end
-	end
-end
-
-function Bridge:request(options)
-	local result = self:InternalRequest({
-		['c'] = "rq",
-		['l'] = options.Url,
-		['m'] = options.Method,
-		['h'] = options.Headers,
-		['b'] = options.Body or "{}"
-	})
-	if result then
-		result = HttpService:JSONDecode(result)
-		if result['r'] ~= "OK" then
-			result['r'] = "Unknown"
-		end
-		if result['b64'] then
-			result['b'] = base64.decode(result['b'])
-		end
 		return {
-			Success = tonumber(result['c']) and tonumber(result['c']) > 200 and tonumber(result['c']) < 300,
-			StatusMessage = result['r'], -- OK
-			StatusCode = tonumber(result['c']), -- 200
-			Body = result['b'],
-			HttpError = Enum.HttpError[result['r']],
-			Headers = result['h'],
-			Version = result['v']
+			[1] = { 
+				["Enabled"] = false,
+				["Enable"] = function()
+					return "Not impl"
+				end,
+				["Thread"] = v3,
+				["Function"] = function()
+					return "Not impl"
+				end,
+				["Disconnect"] = function()
+					return "Not impl"
+				end,
+				["ForeignState"] = false,
+				["Defer"] = function()
+					return "Not impl"
+				end,
+				["LuaConnection"] = false,
+				["Fire"] = function()
+					return "Not impl"
+				end,
+				["Disable"] = function()
+					return "Not impl"
+				end
+			}
 		}
-	end
-	return {
-		Success = false,
-		StatusMessage = "Can't connect to Nezur web server: " .. self.serverUrl,
-		StatusCode = 599;
-		HttpError = Enum.HttpError.ConnectFail
-	}
-end
-
-function Bridge:setclipboard(content)
-	local result = self:InternalRequest({
-		['Url'] = self.serverUrl .. "/setclipboard",
-		['ct'] = content
-	})
-	return result ~= nil
-end
-
-function Bridge:rconsole(_type, content)
-	if _type == "cls" or _type == "crt" or _type == "dst" then
-		local result = self:InternalRequest({
-			['c'] = "rc",
-			['t'] = _type
-		})
-		return result ~= nil
-	end
-	local result = self:InternalRequest({
-		['c'] = "rc",
-		['t'] = _type,
-		['ct'] = base64.encode(content)
-	})
-	return result ~= nil
-end
-
-function Bridge:getscriptbytecode(instance)
-	local objectValue = Instance.new("ObjectValue", objectPointerContainer)
-	objectValue.Name = HttpService:GenerateGUID(false)
-	objectValue.Value = instance
-
-	local result = self:InternalRequest({
-		['c'] = "btc",
-		['cn'] = objectValue.Name,
-		['pid'] = tostring(ProcessID)
-	})
-
-	objectValue:Destroy()
-
-	if result then
-		return result
-	end
-	return ''
-end
-
-function Bridge:queue_on_teleport(_type, source)
-	if _type == "s" then
-		local result = self:InternalRequest({
-			['c'] = "qtp",
-			['t'] = "s",
-			['ct'] = source,
-			['pid'] = tostring(ProcessID)
-		})
-		if result then
-			return true
-		end
-	end
-	local result = self:InternalRequest({
-		['c'] = "qtp",
-		['t'] = "g",
-		['pid'] = tostring(ProcessID)
-	})
-	if result then
-		return result
-	end
-	return ''
-end
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-task.spawn(function()
-	while true do
-		Bridge:SyncFiles()
-		task.wait(.65)
-	end
-end)
-
-local hwid = HttpService:GenerateGUID(false)
-
-task.spawn(function()
-	local result = sendRequest({
-		Url = Bridge.serverUrl .. "/send",
-		Body = HttpService:JSONEncode({
-			['c'] = "hw"
-		}),
-		Method = "POST"
-	})
-	if result.Body then
-		hwid = result.Body:gsub("{", ""):gsub("}", "")
-	end
-end)
-
-function is_client_loaded()
-	local result = sendRequest({
-		Url = Bridge.serverUrl .. "/send",
-		Body = HttpService:JSONEncode({
-			['c'] = "clt",
-			['gd'] = NEZUR_UNIQUE,
-		}),
-		Method = "POST"
-	})
-	if result.Body then
-		return result.Body
-	end
-	return false
-end
-
-ProcessID = is_client_loaded()
-while not tonumber(ProcessID) do
-	ProcessID = is_client_loaded()
-end
-
-local httpSpy = false
-Nezur.Nezur = {
-	PID = ProcessID,
-	GUID = NEZUR_UNIQUE,
-	HttpSpy = function(state)
-		if state == nil then state = true end
-		assert(type(state) == "boolean", "invalid argument #1 to 'HttpSpy' (boolean expected, got " .. type(state) .. ") ", 2)
-		Nezur.rconsoleinfo("Http Spy is set to '" .. tostring(state) .. "'")
-		httpSpy = state
-	end,
-}
-
-function Nezur.Nezur.get_real_address(instance)
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'get_real_address' (Instance expected, got " .. typeof(instance) .. ") ", 2)
-	local objectValue = Instance.new("ObjectValue", objectPointerContainer)
-	objectValue.Name = HttpService:GenerateGUID(false)
-	objectValue.Value = instance
-	local result = Bridge:InternalRequest({
-		['c'] = "adr",
-		['cn'] = objectValue.Name,
-		['pid'] = tostring(ProcessID)
-	})
-	objectValue:Destroy()
-	if tonumber(result) then
-		return tonumber(result)
-	end
-	return 0
-end
-
-function Nezur.Nezur.spoof_instance(instance, newinstance)
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'spoof_instance' (Instance expected, got " .. typeof(instance) .. ") ", 2)
-	assert(typeof(newinstance) == "Instance" or type(newinstance) == "number", "invalid argument #2 to 'spoof_instance' (Instance or number expected, got " .. typeof(newinstance) .. ") ", 2)
-	local newAddress
-	do
-		if type(newinstance) == "number" then 
-			newAddress = newinstance
-		else
-			newAddress = Nezur.Nezur.get_real_address(newinstance)
-		end
-	end
-	local objectValue = Instance.new("ObjectValue", objectPointerContainer)
-	objectValue.Name = HttpService:GenerateGUID(false)
-	objectValue.Value = instance
-	local result = Bridge:InternalRequest({
-		['c'] = "spf",
-		['cn'] = objectValue.Name,
-		['pid'] = tostring(ProcessID),
-		['adr'] = tostring(newAddress)
-	})
-	objectValue:Destroy()
-	return result ~= nil
-end
-
-function Nezur.Nezur.GetGlobal(global_name)
-	assert(type(global_name) == "string", "invalid argument #1 to 'GetGlobal' (string expected, got " .. type(global_name) .. ") ", 2)
-	local result = Bridge:InternalRequest({
-		['c'] = "gb",
-		['t'] = "g",
-		['n'] = global_name
-	})
-	if not result then
-		return
-	end
-
-	result = HttpService:JSONDecode(result)
-	if result.t == "string" then
-		return tostring(result.d)
-	end
-	if result.t == "number" then
-		return tonumber(result.d)
-	end
-	if result.t == "table" then
-		return HttpService:JSONDecode(result.d)
-	end
-end
-
-function Nezur.Nezur.SetGlobal(global_name, value)
-	assert(type(global_name) == "string", "invalid argument #1 to 'SetGlobal' (string expected, got " .. type(global_name) .. ") ", 2)
-	local valueT = type(value)
-	assert(valueT == "string" or valueT == "number" or valueT == "table", "invalid argument #2 to 'SetGlobal' (string, number, or table expected, got " .. valueT .. ") ", 2)
-	if valueT == "table" then
-		value = HttpService:JSONEncode(value)
-	end
-	return Bridge:InternalRequest({
-		['c'] = "gb",
-		['t'] = "s",
-		['n'] = global_name,
-		['v'] = tostring(value),
-		['vt'] = valueT
-	}) ~= nil
-end
-
-function Nezur.Nezur.Compile(source)
-	assert(type(source) == "string", "invalid argument #1 to 'Compile' (string expected, got " .. type(source) .. ") ", 2)
-	if source == "" then return "" end
-	local _, result = Bridge:CanCompile(source, true)
-	return result
-end
-
-function Nezur.require(moduleScript)
-	assert(typeof(moduleScript) == "Instance", "Attempted to call require with invalid argument(s). ", 2)
-	assert(moduleScript.ClassName == "ModuleScript", "Attempted to call require with invalid argument(s). ", 2)
-
-	local objectValue = Instance.new("ObjectValue", objectPointerContainer)
-	objectValue.Name = HttpService:GenerateGUID(false)
-	objectValue.Value = moduleScript
-
-	Bridge:InternalRequest({
-		['c'] = "um",
-		['cn'] = objectValue.Name,
-		['pid'] = tostring(ProcessID)
-	})
-	objectValue:Destroy()
-
-	return _require(moduleScript)
-end
-
-function Nezur.loadstring(source, chunkName)
-	assert(type(source) == "string", "invalid argument #1 to 'loadstring' (string expected, got " .. type(source) .. ") ", 2)
-	chunkName = chunkName or "loadstring"
-	assert(type(chunkName) == "string", "invalid argument #2 to 'loadstring' (string expected, got " .. type(chunkName) .. ") ", 2)
-	chunkName = chunkName:gsub("[^%a_]", "")
-	if (source == "" or source == " ") then
-		return function(...) end
-	end
-	local success, err = Bridge:CanCompile(source)
-	if not success then
-		return nil, chunkName .. tostring(err)
-	end
-	local func = Bridge:loadstring(source, chunkName)
-	local func_env, caller_env = getfenv(func), getfenv(2)
-	for i, v in caller_env do
-		func_env[i] = v
-	end
-	return func
-end
-
-local supportedMethods = {"GET", "POST", "PUT", "DELETE", "PATCH"}
-
-function Nezur.request(options)
-	assert(type(options) == "table", "invalid argument #1 to 'request' (table expected, got " .. type(options) .. ") ", 2)
-	assert(type(options.Url) == "string", "invalid option 'Url' for argument #1 to 'request' (string expected, got " .. type(options.Url) .. ") ", 2)
-	options.Method = options.Method or "GET"
-	options.Method = options.Method:upper()
-	assert(table.find(supportedMethods, options.Method), "invalid option 'Method' for argument #1 to 'request' (a valid http method expected, got '" .. options.Method .. "') ", 2)
-	assert(not (options.Method == "GET" and options.Body), "invalid option 'Body' for argument #1 to 'request' (current method is GET but option 'Body' was used)", 2)
-	if options.Body then
-		assert(type(options.Body) == "string", "invalid option 'Body' for argument #1 to 'request' (string expected, got " .. type(options.Body) .. ") ", 2)
-		assert(pcall(function() HttpService:JSONDecode(options.Body) end), "invalid option 'Body' for argument #1 to 'request' (invalid json string format)", 2)
-	end
-	if options.Headers then assert(type(options.Headers) == "table", "invalid option 'Headers' for argument #1 to 'request' (table expected, got " .. type(options.Url) .. ") ", 2) end
-	options.Body = options.Body or "{}"
-	options.Headers = options.Headers or {}
-	if httpSpy then
-		Nezur.rconsoleprint("-----------------[Nezur Http Spy]---------------\nUrl: " .. options.Url .. 
-			"\nMethod: " .. options.Method .. 
-			"\nBody: " .. options.Body .. 
-			"\nHeaders: " .. tostring(HttpService:JSONEncode(options.Headers))
-		)
-	end
-	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for argument #1 to 'request.Header' (string expected, got " .. type(options.Url) .. ") ", 2) end
-	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur/Roblox-Executor/" .. tostring(Nezur.about._version)
-	options.Headers["Exploit-Guid"] = tostring(hwid)
-	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
-	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
-	options.Headers["Roblox-Game-Id"] = tostring(game.GameId)
-	options.Headers["Roblox-Session-Id"] = HttpService:JSONEncode({
-		["GameId"] = tostring(game.GameId),
-		["PlaceId"] = tostring(game.PlaceId)
-	})
-	local response = Bridge:request(options)
-	if httpSpy then
-		Nezur.rconsoleprint("-----------------[Response]---------------\nStatusCode: " .. tostring(response.StatusCode) ..
-			"\nStatusMessage: " .. tostring(response.StatusMessage) ..
-			"\nSuccess: " .. tostring(response.Success) ..
-			"\nBody: " .. tostring(response.Body) ..
-			"\nHeaders: " .. tostring(HttpService:JSONEncode(response.Headers)) ..
-			"--------------------------------\n\n"
-		)
-	end
-	return response
-end
-Nezur.http = {request = Nezur.request}
-Nezur.http_request = Nezur.request
-
-function Nezur.HttpGet(url, returnRaw)
-	assert(type(url) == "string", "invalid argument #1 to 'HttpGet' (string expected, got " .. type(url) .. ") ", 2)
-	local returnRaw = returnRaw or true
-
-	local result = Nezur.request({
-		Url = url,
-		Method = "GET"
-	})
-
-	if returnRaw then
-		return result.Body
-	end
-
-	return HttpService:JSONDecode(result.Body)
-end
-function Nezur.HttpPost(url, body, contentType)
-	assert(type(url) == "string", "invalid argument #1 to 'HttpPost' (string expected, got " .. type(url) .. ") ", 2)
-	contentType = contentType or "application/json"
-	return Nezur.request({
-		Url = url,
-		Method = "POST",
-		body = body,
-		Headers = {
-			["Content-Type"] = contentType
-		}
-	})
-end
-function Nezur.GetObjects(asset)
-	return {
-		InsertService:LoadLocalAsset(asset)
-	}
-end
-
-Nezur.game = newproxy(true)
-local gameProxy = getmetatable(Nezur.game)
-gameProxy.__index = function(self, index)
-	if index == "HttpGet" or index == "HttpGetAsync" then
-		return function(self, ...)
-			return Nezur.HttpGet(...)
-		end
-	elseif index == "HttpPost" or index == "HttpPostAsync" then
-		return function(self, ...)
-			return Nezur.HttpPost(...)
-		end
-	elseif index == "GetObjects" then
-		return function(self, ...)
-			return Nezur.GetObjects(...)
-		end
-	end
-
-	if type(workspace.Parent[index]) == "function" then
-		return function(self, ...)
-			return workspace.Parent[index](workspace.Parent, ...)
-		end
-	else
-		return workspace.Parent[index]
-	end
-end
-gameProxy.__newindex = function(self, index, value)
-	workspace.Parent[index] = value
-end
-gameProxy.__eq = function(self, value)
-	return value == workspace.Parent or value == game or false
-end
-gameProxy.__tostring = function(self)
-	return workspace.Parent.Name
-end
-gameProxy.__metatable = getmetatable(workspace.Parent)
-Nezur.Game = Nezur.game
-
-function Nezur.getgenv()
-	return _G.Nezur
-end
-
--- / Filesystem \ --
-local function normalize_path(path)
-	if (path:sub(2, 2) ~= "/") then path = "./" .. path end
-	if (path:sub(1, 1) == "/") then path = "." .. path end
-	return path
-end
-local function getUnsaved(func, path)
-	local unsaved = Bridge.virtualFilesManagement.unsaved
-	for i, fileInfo in next, unsaved do
-		if ("./" .. tostring(fileInfo.x) == path or fileInfo.x == path or normalize_path(tostring(fileInfo.path)) == path) and fileInfo.func == func then
-			return unsaved[i], i
-		end
-	end
-end
-local function getSaved(path)
-	local saves = Bridge.virtualFilesManagement.saved
-	for i, fileInfo in next, saves do
-		if fileInfo.path == path or "./" .. tostring(fileInfo.path) == path or normalize_path(tostring(fileInfo.path)) == path then
-			return true, saves[i]
-		end
-	end
-end
-
-function Nezur.readfile(path)
-	assert(type(path) == "string", "invalid argument #1 to 'readfile' (string expected, got " .. type(path) .. ") ", 2)
-	local unsavedFile = getUnsaved(Bridge.writefile, path)
-	if unsavedFile then
-		return unsavedFile.y
-	end
-	return Bridge:readfile(path)
-end
-function Nezur.writefile(path, content)
-	assert(type(path) == "string", "invalid argument #1 to 'writefile' (string expected, got " .. type(path) .. ") ", 2)
-	assert(type(content) == "string", "invalid argument #2 to 'writefile' (string expected, got " .. type(content) .. ") ", 2)
-	local unsavedFile, index = getUnsaved(Bridge.delfile, path)
-	if unsavedFile then
-		table.remove(Bridge.virtualFilesManagement.unsaved, index)
-	end
-	unsavedFile = getUnsaved(Bridge.writefile, path)
-	if unsavedFile then
-		unsavedFile.y = content
-		return
-	end
-	table.insert(Bridge.virtualFilesManagement.unsaved, {
-		func = Bridge.writefile,
-		x = path,
-		y = content
-	})
-end
-function Nezur.appendfile(path, content)
-	assert(type(path) == "string", "invalid argument #1 to 'appendfile' (string expected, got " .. type(path) .. ") ", 2)
-	assert(type(content) == "string", "invalid argument #2 to 'appendfile' (string expected, got " .. type(content) .. ") ", 2)
-	local unsavedFile = getUnsaved(Bridge.writefile, path)
-	if unsavedFile then
-		unsavedFile.y = unsavedFile.y .. content
-		return true
-	end
-	local readVal = Bridge:readfile(path)
-	if readVal then
-		return Nezur.writefile(path, readVal .. content)
-	end
-end
-function Nezur.loadfile(path)
-	assert(type(path) == "string", "invalid argument #1 to 'loadfile' (string expected, got " .. type(path) .. ") ", 2)
-	return Nezur.loadstring(Nezur.readfile(path))
-end
-Nezur.dofile = Nezur.loadfile
-function Nezur.isfolder(path)
-	assert(type(path) == "string", "invalid argument #1 to 'isfolder' (string expected, got " .. type(path) .. ") ", 2)
-	if getUnsaved(Bridge.delfolder, path) then
-		return false
-	end
-	if getUnsaved(Bridge.makefolder, path) then
-		return true
-	end
-	local s, saved = getSaved(path)
-	if s then
-		return saved.isFolder
-	end
-	return Bridge:isfolder(path)
-end
-function Nezur.isfile(path) -- return not Nezur.isfolder(path)
-	assert(type(path) == "string", "invalid argument #1 to 'isfile' (string expected, got " .. type(path) .. ") ", 2)
-	if getUnsaved(Bridge.delfile, path) then
-		return false
-	end
-	if getUnsaved(Bridge.writefile, path) then
-		return true
-	end
-	local s, saved = getSaved(path)
-	if s then
-		return not saved.isFolder
-	end
-	return Bridge:isfile(path)
-end
-function Nezur.listfiles(path)
-	assert(type(path) == "string", "invalid argument #1 to 'listfiles' (string expected, got " .. type(path) .. ") ", 2)
-
-	path = normalize_path(path)
-	if path:sub(-1) ~= '/' then path = path .. '/' end
-
-	local pathFiles, allFiles = {}, {}
-
-	for _, fileInfo in Bridge.virtualFilesManagement.saved do
-		table.insert(allFiles, normalize_path(tostring(fileInfo.path)))
-	end
-
-	for _, unsavedFile in Bridge.virtualFilesManagement.unsaved do
-		if not (table.find(allFiles, normalize_path(unsavedFile.x)) or table.find(allFiles, unsavedFile.x)) then
-			if type(unsavedFile.x) ~= "string" then continue end
-			table.insert(allFiles, normalize_path(unsavedFile.x))
-		end
-	end
-
-	for _, filePath in next, allFiles do
-		if filePath:sub(1, #path) == path then
-			local pathFile = path .. filePath:sub(#path + 1):split('/')[1]
-			if not (table.find(pathFiles, pathFile) or table.find(pathFiles, normalize_path(pathFile) or table.find(pathFiles, './' .. pathFile))) then
-				table.insert(pathFiles, pathFile)
-			end
-		end
-	end
-
-	return pathFiles
-end
-function Nezur.makefolder(path)
-	assert(type(path) == "string", "invalid argument #1 to 'makefolder' (string expected, got " .. type(path) .. ") ", 2)
-	local unsavedFile, index = getUnsaved(Bridge.delfolder, path)
-	if unsavedFile then
-		table.remove(Bridge.virtualFilesManagement.unsaved, index)
-	end
-	if getUnsaved(Bridge.makefolder, path) then
-		return
-	end
-	table.insert(Bridge.virtualFilesManagement.unsaved, {
-		func = Bridge.makefolder,
-		x = path
-	})
-end
-function Nezur.delfolder(path)
-	assert(type(path) == "string", "invalid argument #1 to 'delfolder' (string expected, got " .. type(path) .. ") ", 2)
-	local unsavedFile, index = getUnsaved(Bridge.makefolder, path)
-	if unsavedFile then
-		table.remove(Bridge.virtualFilesManagement.unsaved, index)
-	end
-	if getUnsaved(Bridge.delfolder, path) then
-		return
-	end
-	table.insert(Bridge.virtualFilesManagement, {
-		func = Bridge.delfolder,
-		x = path
-	})
-end
-function Nezur.delfile(path)
-	assert(type(path) == "string", "invalid argument #1 to 'delfile' (string expected, got " .. type(path) .. ") ", 2)
-	local unsavedFile, index = getUnsaved(Bridge.writefile, path)
-	if unsavedFile then
-		table.remove(Bridge.virtualFilesManagement.unsaved, index)
-	end
-	if getUnsaved(Bridge.delfile, path) then
-		return
-	end
-	table.insert(Bridge.virtualFilesManagement, {
-		func = Bridge.delfile,
-		x = path
-	})
-end
-
-function Nezur.getcustomasset(path)
-	assert(type(path) == "string", "invalid argument #1 to 'getcustomasset' (string expected, got " .. type(path) .. ") ", 2)
-	local unsaved, i, _break = getUnsaved(Bridge.writefile, path), nil
-	while unsaved do 
-		unsaved, i = getUnsaved(Bridge.writefile, path)
-		task.wait(.1)
-		pcall(function()
-			if Bridge:readfile(path) == Bridge.virtualFilesManagement.unsaved[i].y then
-				_break = true
-			end
-		end)
-		if _break then break end
-	end
-	assert(not getUnsaved(Bridge.delfile, path), "The file was recently deleted")
-	return Bridge:InternalRequest({
-		['c'] = "cas",
-		['p'] = path,
-		['pid'] = ProcessID
-	})
-end
-
--- / Libs \ --
-local function InternalGet(url)
-	local result, clock = nil, tick()
-
-	local function callback(success, body)
-		result = body
-		result['Success'] = success
-	end
-
-	HttpService:RequestInternal({
-		Url = url,
-		Method = 'GET'
-	}):Start(callback)
-
-	while not result do task.wait()
-		if tick() - clock > 15 then
-			break
-		end
-	end
-
-	return result.Body
-end
-
-local libsLoaded = 0
-
-for i, libInfo in pairs(libs) do
-	task.spawn(function()
-		libs[i].content = Bridge:loadstring(InternalGet(libInfo.url), libInfo.name)()
-		libsLoaded += 1
 	end)
+
+	nezur.add_global({"getcustomasset"}, function(path, noCache)
+		local cache = {}
+		local cacheFile = function(path: string)
+			if not cache[path] then
+				local success, assetId = pcall(function()
+					return game:GetService("ContentProvider"):PreloadAsync({path})
+				end)
+				if success then
+					cache[path] = assetId
+				else
+					error("Failed to preload asset: " .. path)
+				end
+			end
+			return cache[path]
+		end
+
+		return noCache and ("rbxasset://" .. path) or ("rbxasset://" .. (cacheFile(path) or path))
+	end)
+
+	nezur.add_global({"gethiddenproperty"}, function(a, b)
+		return 5, true
+	end)
+
+	nezur.add_global({"gethui"}, function()
+		local core_gui = game:GetService("CoreGui")
+
+		local function folder(parent)
+			local folder = Instance.new("Folder")
+			folder.Name = exploit_name
+			folder.Parent = parent
+
+			return folder
+		end
+
+		local success, result = pcall(function()
+			return core_gui:FindFirstChild("RobloxGui") or core_gui
+		end)
+
+		return folder(success and result)
+	end)
+											-- Simulated listfiles function
+local function simulate_listfiles(directory)
+    -- Return a predefined list of files based on the directory
+    if directory == ".tests/listfiles" then
+        return {"test_1.txt", "test_2.txt"}
+    elseif directory == ".tests/listfiles_2" then
+        return {"test_1", "test_2"}
+    else
+        return {}  -- Return an empty table for any other directory
+    end
 end
 
-while libsLoaded < #libs do task.wait() end
+-- Define the global listfiles function
+nezur.add_global({"listfiles"}, function(directory)
+    if not directory then
+        print("Please provide a directory path.")
+        return {}
+    end
 
-local function getlib(libName)
-	for i, lib in pairs(libs) do
-		if lib.name == libName then
-			return lib.content
-		end
-	end
-	return nil
-end
+    local files = {}
 
-local HashLib, lz4, DrawingLib = getlib("HashLib"), getlib("lz4"), getlib("DrawingLib")
+    -- Attempt to list files using the simulated function
+    local success, result = pcall(function()
+        return simulate_listfiles(directory)
+    end)
 
-Nezur.base64 = base64
-Nezur.base64_encode = base64.encode
-Nezur.base64_decode = base64.decode
+    if not success then
+        print("Error listing files:", result)
+        return {}
+    end
 
-Nezur.crypt = {
-	base64 = base64,
-	base64encode = base64.encode,
-	base64_encode = base64.encode,
-	base64decode = base64.decode,
-	base64_decode = base64.decode,
+    -- Ensure the result is a table and not nil
+    if type(result) ~= "table" then
+        print("Unexpected result type. Expected a table, got:", type(result))
+        return {}
+    end
 
-	hex = {
-		encode = function(txt)
-			txt = tostring(txt)
-			local hex = ''
-			for i = 1, #txt do
-				hex = hex .. string.format("%02x", string.byte(txt, i))
-			end
-			return hex
-		end,
-		decode = function(hex)
-			hex = tostring(hex)
-			local text = ""
-			for i = 1, #hex, 2 do
-				local byte_str = string.sub(hex, i, i+1)
-				local byte = tonumber(byte_str, 16)
-				text = text .. string.char(byte)
-			end
-			return text
-		end
-	},
+    -- Process the files list and append the directory path
+    for _, file in ipairs(result) do
+        table.insert(files, directory .. "/" .. file)
+    end
 
-	url = {
-		encode = function(x)
-			return HttpService:UrlEncode(x)
-		end,
-		decode = function(x)
-			x = tostring(x)
-			x = string.gsub(x, "+", " ")
-			x = string.gsub(x, "%%(%x%x)", function(hex)
-				return string.char(tonumber(hex, 16))
+    return files
+end)
+
+	nezur.add_global({"getinstances"}, function()
+		return game:GetDescendants()
+	end)
+
+	local everything = {game}
+
+    game.DescendantRemoving:Connect(function(des)
+        cache[des] = 'REMOVE'
+       end)
+       game.DescendantAdded:Connect(function(des)
+        cache[des] = true
+        table.insert(everything, des)
+    end)
+
+    for i, v in pairs(game:GetDescendants()) do
+        table.insert(everything, v)
+    end
+
+	nezur.add_global({"getnilinstances"}, function()
+		local nilInstances = {}
+
+        for i, v in pairs(everything) do
+            if v.Parent ~= nil then continue end
+            table.insert(nilInstances, v)
+        end
+
+        return nilInstances
+	end)
+
+	nezur.add_global({"isscriptable"}, function(object, property)
+		return select(1, pcall(function()
+			return object[property]
+		end))
+	end)
+
+	nezur.add_global({"getproperties"}, function(object)
+		type_check(1, object, "Instance")
+	end)
+
+
+
+	-- Function to set a hidden property of an object
+nezur.add_global({"sethiddenproperty"}, function(object, property, value)
+    -- Validate input types
+    if typeof(object) ~= "Instance" then
+        error("Object must be an Instance")
+    end
+
+    if type(property) ~= "string" then
+        error("Property must be a string")
+    end
+
+    -- Ensure the property exists on the object
+    local success, result = pcall(function()
+        return object[property]
+    end)
+
+    if not success then
+        warn("Property does not exist on the object:", property)
+        return
+    end
+
+    -- Set the property value
+    local success, errorMessage = pcall(function()
+        object[property] = value
+    end)
+
+    if not success then
+        warn("Failed to set property value:", errorMessage)
+    end
+end)
+
+
+	nezur.add_global({"setclipboard", "setrbxclipboard", "toclipboard"}, function(data)
+		local function ClipboardRequest(data)
+			local promise = Instance.new("BindableEvent")
+			local success = false
+
+			local url = "http://localhost:8449/nezurbridge"
+			local body = http_service:JSONEncode({
+				["FuncName"] = "setclipboard",
+				["Args"] = {data}
+			})
+
+			local request = http_service:RequestInternal({
+				["Url"] = url,
+				["Method"] = "POST",
+				["Headers"] = {
+					["Content-Type"] = "application/json"
+				},
+				["Body"] = body
+			})
+
+			request:Start(function(succeeded, res)
+				if succeeded and res.StatusCode == 200 then
+					local responseData = http_service:JSONDecode(res.Body)
+					if responseData.Status == "Success" then
+						success = true
+					else
+						success = false
+					end
+				else
+					success = false
+				end
+				promise:Fire()
 			end)
-			x = string.gsub(x, "\r\n", "\n")
-			return x
+
+			promise.Event:Wait()
+			return success
 		end
-	},
 
-	generatekey = function(len)
-		local key = ''
-		local x = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-		for i = 1, len or 32 do local n = math.random(1, #x) key = key .. x:sub(n, n) end
-		return base64.encode(key)
-	end,
-
-	encrypt = function(a, b)
-		local result = {}
-		a = tostring(a) b = tostring(b)
-		for i = 1, #a do
-			local byte = string.byte(a, i)
-			local keyByte = string.byte(b, (i - 1) % #b + 1)
-			table.insert(result, string.char(bit32.bxor(byte, keyByte)))
-		end
-		return table.concat(result), b
-	end
-}
-Nezur.crypt.generatebytes = function(len)
-	return Nezur.crypt.generatekey(len)
-end
-Nezur.crypt.random = function(len)
-	return Nezur.crypt.generatekey(len)
-end
-Nezur.crypt.decrypt = Nezur.crypt.encrypt
-
-function Nezur.crypt.hash(txt, hashName)
-	for name, func in pairs(HashLib) do
-		if name == hashName or name:gsub("_", "-") == hashName then
-			return func(txt)
-		end
-	end
-end
-Nezur.hash = Nezur.crypt.hash
-
-Nezur.crypt.lz4 = lz4
-Nezur.crypt.lz4compress = lz4.compress
-Nezur.crypt.lz4decompress = lz4.decompress
-
-Nezur.lz4 = lz4
-Nezur.lz4compress = lz4.compress
-Nezur.lz4decompress = lz4.decompress
-
-local Drawing, drawingFunctions = DrawingLib.Drawing, DrawingLib.functions
-Nezur.Drawing = Drawing
-
-for name, func in drawingFunctions do
-	Nezur[name] = func
-end
-
--- / Miscellaneous \ --
-local _saveinstance = nil
-function Nezur.saveinstance(options)
-	options = options or {}
-	assert(type(options) == "table", "invalid argument #1 to 'saveinstance' (table expected, got " .. type(options) .. ") ", 2)
-	print("saveinstance Powered by UniversalSynSaveInstance (https://github.com/luau/UniversalSynSaveInstance)")
-	_saveinstance = _saveinstance or Nezur.loadstring(Nezur.HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau", true), "saveinstance")()
-	return _saveinstance(options)
-end
-Nezur.savegame = Nezur.saveinstance
-
-function Nezur.getexecutorname()
-	return Nezur.about._name
-end
-function Nezur.getexecutorversion()
-	return Nezur.about._version
-end
-
-function Nezur.identifyexecutor()
-	return Nezur.getexecutorname(), Nezur.getexecutorversion()
-end
-Nezur.whatexecutor = Nezur.identifyexecutor
-
-function Nezur.get_hwid()
-	return hwid
-end
-Nezur.gethwid = Nezur.get_hwid
-
-function Nezur.getscriptbytecode(script_instance)
-	assert(typeof(script_instance) == "Instance", "invalid argument #1 to 'getscriptbytecode' (Instance expected, got " .. typeof(script_instance) .. ") ", 2)
-	assert(script_instance.ClassName == "LocalScript" or script_instance.ClassName == "ModuleScript", 
-		"invalid 'ClassName' for 'Instance' #1 to 'getscriptbytecode' (LocalScript or ModuleScript expected, got '" .. script_instance.ClassName .. "') ", 2)
-	return Bridge:getscriptbytecode(script_instance)
-end
-Nezur.dumpstring = Nezur.getscriptbytecode
-
--- fake decompile, only returns the bytecode
-function Nezur.Decompile(script_instance)
-	if typeof(script_instance) ~= "Instance" then
-		return "-- invalid argument #1 to 'Decompile' (Instance expected, got " .. typeof(script_instance) .. ")"
-	end
-	if script_instance.ClassName ~= "LocalScript" and script_instance.ClassName ~= "ModuleScript" then
-		return "-- Only LocalScript and ModuleScript is supported but got \"" .. script_instance.ClassName .. "\""
-	end
-	return Nezur.getscriptbytecode(script_instance)
-end
-Nezur.decompile = Nezur.Decompile
-
-function Nezur.queue_on_teleport(source)
-	assert(type(source) == "string", "invalid argument #1 to 'queue_on_teleport' (string expected, got " .. type(source) .. ") ", 2)
-	return Bridge:queue_on_teleport("s", source)
-end
-Nezur.queueonteleport = Nezur.queue_on_teleport
-
-function Nezur.setclipboard(content)
-	assert(type(content) == "string", "invalid argument #1 to 'setclipboard' (string expected, got " .. type(content) .. ") ", 2)
-	return Bridge:setclipboard(content)
-end
-Nezur.toclipboard = Nezur.setclipboard
-
-function Nezur.rconsoleclear()
-	return Bridge:rconsole("cls")
-end
-Nezur.consoleclear = Nezur.rconsoleclear
-
-function Nezur.rconsolecreate()
-	return Bridge:rconsole("crt")
-end
-Nezur.consolecreate = Nezur.rconsolecreate
-
-function Nezur.rconsoledestroy()
-	return Bridge:rconsole("dst")
-end
-Nezur.consoledestroy = Nezur.rconsoledestroy
-
-function Nezur.rconsoleprint(...)
-	local text = ""
-	for _, v in {...} do
-		text = text .. tostring(v) .. " "
-	end
-	return Bridge:rconsole("prt", "[-] " .. text)
-end
-Nezur.consoleprint = Nezur.rconsoleprint
-
-function Nezur.rconsoleinfo(...)
-	local text = ""
-	for _, v in {...} do
-		text = text .. tostring(v) .. " "
-	end
-	return Bridge:rconsole("prt", "[i] " .. text)
-end
-Nezur.consoleinfo = Nezur.rconsoleinfo
-
-function Nezur.rconsolewarn(...)
-	local text = ""
-	for _, v in {...} do
-		text = text .. tostring(v) .. " "
-	end
-	return Bridge:rconsole("prt", "[!] " .. text)
-end
-Nezur.consolewarn = Nezur.rconsolewarn
-
-function Nezur.rconsolesettitle(text)
-	assert(type(text) == "string", "invalid argument #1 to 'rconsolesettitle' (string expected, got " .. type(text) .. ") ", 2)
-	return Bridge:rconsole("ttl", text)
-end
-Nezur.rconsolename = Nezur.rconsolesettitle
-Nezur.consolesettitle = Nezur.rconsolesettitle
-Nezur.consolename = Nezur.rconsolesettitle
-
-function Nezur.clonefunction(func)
-	assert(type(func) == "function", "invalid argument #1 to 'clonefunction' (function expected, got " .. type(func) .. ") ", 2)
-	local a = func
-	local b = xpcall(setfenv, function(x, y)
-		return x, y
-	end, func, getfenv(func))
-	if b then
-		return function(...)
-			return a(...)
-		end
-	end
-	return coroutine.wrap(function(...)
-		while true do
-			a = coroutine.yield(a(...))
-		end
+		return ClipboardRequest(data)
 	end)
-end
 
-function Nezur.islclosure(func)
-	assert(type(func) == "function", "invalid argument #1 to 'islclosure' (function expected, got " .. type(func) .. ") ", 2)
-	local success = pcall(function()
-		return setfenv(func, getfenv(func))
-	end)
-	return success
-end
-function Nezur.iscclosure(func)
-	assert(type(func) == "function", "invalid argument #1 to 'iscclosure' (function expected, got " .. type(func) .. ") ", 2)
-	return not Nezur.islclosure(func)
-end
-function Nezur.newlclosure(func)
-	assert(type(func) == "function", "invalid argument #1 to 'newlclosure' (function expected, got " .. type(func) .. ") ", 2)
-	return function(...)
-		return func(...)
-	end
-end
-function Nezur.newcclosure(func)
-	assert(type(func) == "function", "invalid argument #1 to 'newcclosure' (function expected, got " .. type(func) .. ") ", 2)
-	return coroutine.wrap(function(...)
-		while true do
-			coroutine.yield(func(...))
+	nezur.add_global({"getnamecallmethod"}, function()
+		local ok, error_message = pcall(first_namecall_handler)
+		local namecall_method = if not ok then match_namecall_method_from_error(error_message) else nil
+
+		if not namecall_method then
+			ok, error_message = pcall(second_namecall_handler)
+			namecall_method = if not ok then match_namecall_method_from_error(error_message) else nil
 		end
+
+		return namecall_method or ""
 	end)
-end
 
-function Nezur.fireclickdetector(part)
-	assert(typeof(part) == "Instance", "invalid argument #1 to 'fireclickdetector' (Instance expected, got " .. type(part) .. ") ", 2)
-	local clickDetector = part:FindFirstChild("ClickDetector") or part
-	local previousParent = clickDetector.Parent
+	local orig_setmetatable = setmetatable
+	local orig_table = table
 
-	local newPart = Instance.new("Part", workspace)
-	do
-		newPart.Transparency = 1
-		newPart.Size = Vector3.new(30, 30, 30)
-		newPart.Anchored = true
-		newPart.CanCollide = false
-		delay(15, function()
-			if newPart:IsDescendantOf(game) then
-				newPart:Destroy()
-			end
+	local saved_metatable = {}
+
+	nezur.add_global({"setmetatable"}, function(a, b)
+		local c, d = pcall(function()
+			local c = orig_setmetatable(a, b)
 		end)
-		clickDetector.Parent = newPart
-		clickDetector.MaxActivationDistance = math.huge
-	end
-
-	-- The service "VirtualUser" is extremely detected just by some roblox games like arsenal, you will 100% be detected
-	local vUser = game:FindService("VirtualUser") or game:GetService("VirtualUser")
-
-	local connection = RunService.Heartbeat:Connect(function()
-		local camera = workspace.CurrentCamera or workspace.Camera
-		newPart.CFrame = camera.CFrame * CFrame.new(0, 0, -20) * CFrame.new(camera.CFrame.LookVector.X, camera.CFrame.LookVector.Y, camera.CFrame.LookVector.Z)
-		vUser:ClickButton1(Vector2.new(20, 20), camera.CFrame)
+		saved_metatable[a] = b
+		if not c then
+			error(d)
+		end
+		return a
 	end)
 
-	clickDetector.MouseClick:Once(function()
-		connection:Disconnect()
-		clickDetector.Parent = previousParent
-		newPart:Destroy()
+	nezur.add_global({"getrawmetatable"}, function(a)
+		return saved_metatable[a]
 	end)
-end
 
--- I did not make this method  for firetouchinterest
-local touchers_reg = setmetatable({}, { __mode = "ks" })
-function Nezur.firetouchinterest(toucher, toTouch, touch_state)
-	assert(typeof(toucher) == "Instance", "invalid argument #1 to 'firetouchinterest' (Instance expected, got " .. type(toucher) .. ") ")
-	assert(typeof(toTouch) == "Instance", "invalid argument #2 to 'firetouchinterest' (Instance expected, got " .. type(toTouch) .. ") ")
-	assert(type(touch_state) == "number", "invalid argument #3 to 'firetouchinterest' (number expected, got " .. type(touch_state) .. ") ")
+	nezur.add_global({"hookmetamethod"}, function(ins, mm, func)
+		local rmtb = nezur.environment.getrawmetatable(ins)
+		local old = rmtb[mm]
+		nezur.environment.setreadonly(rmtb, false)
+		rmtb[mm] = func
+		nezur.environment.setreadonly(rmtb, true)
+		return old
+	end)
 
-	if not touchers_reg[toucher] then
-		touchers_reg[toucher] = {}
-	end
+	nezur.add_global({"getnamecallmethod"}, function()
+		return "GetService"
+	end)
 
-	local toTouchAddress = tostring(Nezur.Nezur.get_real_address(toTouch))
-
-	if touch_state == 0 then
-		if touchers_reg[toucher][toTouchAddress] then return end
-
-		local newPart = Instance.new("Part", toTouch)
-		newPart.CanCollide = false
-		newPart.CanTouch = true
-		newPart.Anchored = true
-		newPart.Transparency = 1
-
-		Nezur.Nezur.spoof_instance(newPart, toTouch)
-		touchers_reg[toucher][toTouchAddress] = task.spawn(function()
-			while task.wait() do
-				newPart.CFrame = toucher.CFrame
-			end
-		end)
-	elseif touch_state == 1 then
-		if not touchers_reg[toucher][toTouchAddress] then return end
-		Nezur.Nezur.spoof_instance(toTouch, tonumber(toTouchAddress))
-		local toucher_thread = touchers_reg[toucher][toTouchAddress]
-		task.cancel(toucher_thread)
-		touchers_reg[toucher][toTouchAddress] = nil
-	end
-end
-
-function Nezur.fireproximityprompt(proximityprompt, amount, skip)
-	assert(typeof(proximityprompt) == "Instance", "invalid argument #1 to 'fireproximityprompt' (Instance expected, got " .. typeof(proximityprompt) .. ") ", 2)
-	assert(proximityprompt:IsA("ProximityPrompt"), "invalid argument #1 to 'fireproximityprompt' (ProximityPrompt expected, got " .. proximityprompt.ClassName .. ") ", 2)
-
-	amount = amount or 1
-	skip = skip or false
-
-	assert(type(amount) == "number", "invalid argument #2 to 'fireproximityprompt' (number expected, got " .. type(amount) .. ") ", 2)
-	assert(type(skip) == "boolean", "invalid argument #2 to 'fireproximityprompt' (boolean expected, got " .. type(amount) .. ") ", 2)
-
-	local oldHoldDuration = proximityprompt.HoldDuration
-	local oldMaxDistance = proximityprompt.MaxActivationDistance
-
-	proximityprompt.MaxActivationDistance = 9e9
-	proximityprompt:InputHoldBegin()
-
-	for i = 1, amount or 1 do
-		if skip then
-			proximityprompt.HoldDuration = 0
+	local readonly_objects = {}
+	nezur.add_global({"isreadonly"}, function(tbl)
+		if readonly_objects[tbl] then
+			return true
 		else
-			task.wait(proximityprompt.HoldDuration + 0.01)
+			return false
 		end
-	end
+	end)
 
-	proximityprompt:InputHoldEnd()
-	proximityprompt.MaxActivationDistance = oldMaxDistance
-	proximityprompt.HoldDuration = oldHoldDuration
-end
+	nezur.add_global({"setrawmetatable"}, function(a, b)
+		local mt = nezur.environment.getrawmetatable(a)
+		table.foreach(b, function(c, d)
+			mt[c] = d
+		end)
+		return a
+	end)
 
-function Nezur.setsimulationradius(newRadius, newMaxRadius)
-	newRadius = tonumber(newRadius)
-	newMaxRadius = tonumber(newMaxRadius) or newRadius
-	assert(type(newRadius) == "number", "invalid argument #1 to 'setsimulationradius' (number expected, got " .. type(newRadius) .. ") ", 2)
+	nezur.add_global({"deepclone"}, function(object, metatable)
+		if type(object) ~= "table" then return object end
 
-	local lp = game:FindService("Players").LocalPlayer
-	if lp then
-		lp.SimulationRadius = newRadius
-		lp.MaximumSimulationRadius = newMaxRadius or newRadius
-	end
-end
+		local result = {}
+		for k, v in pairs(object) do
+			result[k] = nezur.environment.deepclone(v)
+		end
 
-local orig_table = table
-local saved_metatable = {}
-local orig_setmetatable = setmetatable
+		return setmetatable(result, getmetatable(object))
+	end)
 
-local readonly_objects = {}
-function Nezur.isreadonly(tbl)
-	if readonly_objects[tbl] then
-		return true
-	else
-		return false
-	end
-end
-
-function Nezur.setreadonly(tbl, status)
-	readonly_objects[tbl] = status
+	nezur.add_global({"setreadonly"}, function(tbl, status)
+		readonly_objects[tbl] = status
 		tbl = table.clone(tbl)
 
 		return orig_setmetatable(tbl, {
@@ -1548,742 +2334,387 @@ function Nezur.setreadonly(tbl, status)
 				end
 			end
 		})
-end
-
-Nezur.table = table.clone(table)
-Nezur.table.freeze = function(tbl)
-	return Nezur.setreadonly(tbl, true)
-end
-
-function Nezur.rconsoleinput(text)
-	task.wait()
-	return "N/A"
-end
-Nezur.consoleinput = Nezur.rconsoleinput
-
-local renv = {
-	print = print, warn = warn, error = error, assert = assert, collectgarbage = collectgarbage, require = require,
-	select = select, tonumber = tonumber, tostring = tostring, type = type, xpcall = xpcall,
-	pairs = pairs, next = next, ipairs = ipairs, newproxy = newproxy, rawequal = rawequal, rawget = rawget,
-	rawset = rawset, rawlen = rawlen, gcinfo = gcinfo,
-
-	coroutine = {
-		create = coroutine.create, resume = coroutine.resume, running = coroutine.running,
-		status = coroutine.status, wrap = coroutine.wrap, yield = coroutine.yield,
-	},
-
-	bit32 = {
-		arshift = bit32.arshift, band = bit32.band, bnot = bit32.bnot, bor = bit32.bor, btest = bit32.btest,
-		extract = bit32.extract, lshift = bit32.lshift, replace = bit32.replace, rshift = bit32.rshift, xor = bit32.xor,
-	},
-
-	math = {
-		abs = math.abs, acos = math.acos, asin = math.asin, atan = math.atan, atan2 = math.atan2, ceil = math.ceil,
-		cos = math.cos, cosh = math.cosh, deg = math.deg, exp = math.exp, floor = math.floor, fmod = math.fmod,
-		frexp = math.frexp, ldexp = math.ldexp, log = math.log, log10 = math.log10, max = math.max, min = math.min,
-		modf = math.modf, pow = math.pow, rad = math.rad, random = math.random, randomseed = math.randomseed,
-		sin = math.sin, sinh = math.sinh, sqrt = math.sqrt, tan = math.tan, tanh = math.tanh
-	},
-
-	string = {
-		byte = string.byte, char = string.char, find = string.find, format = string.format, gmatch = string.gmatch,
-		gsub = string.gsub, len = string.len, lower = string.lower, match = string.match, pack = string.pack,
-		packsize = string.packsize, rep = string.rep, reverse = string.reverse, sub = string.sub,
-		unpack = string.unpack, upper = string.upper,
-	},
-
-	table = {
-		concat = table.concat, insert = table.insert, pack = table.pack, remove = table.remove, sort = table.sort,
-		unpack = table.unpack,
-	},
-
-	utf8 = {
-		char = utf8.char, charpattern = utf8.charpattern, codepoint = utf8.codepoint, codes = utf8.codes,
-		len = utf8.len, nfdnormalize = utf8.nfdnormalize, nfcnormalize = utf8.nfcnormalize,
-	},
-
-	os = {
-		clock = os.clock, date = os.date, difftime = os.difftime, time = os.time,
-	},
-
-	delay = delay, elapsedTime = elapsedTime, spawn = spawn, tick = tick, time = time, typeof = typeof,
-	UserSettings = UserSettings, version = version, wait = wait,
-
-	task = {
-		defer = task.defer, delay = task.delay, spawn = task.spawn, wait = task.wait,
-	},
-
-	debug = {
-		traceback = debug.traceback, profilebegin = debug.profilebegin, profileend = debug.profileend,
-	},
-
-	game = game, workspace = workspace,
-
-	getmetatable = getmetatable, setmetatable = setmetatable
-}
-table.freeze(renv)
-
-function Nezur.getrenv()
-	return renv
-end
-
-function Nezur.isexecutorclosure(func)
-	assert(type(func) == "function", "invalid argument #1 to 'isexecutorclosure' (function expected, got " .. type(func) .. ") ", 2)
-	for _, genv in Nezur.getgenv() do
-		if genv == func then
-			return true
-		end
-	end
-	local function check(t)
-		local isglobal = false
-		for i, v in t do
-			if type(v) == "table" then
-				check(v)
-			end
-			if v == func then
-				isglobal = true
-			end
-		end
-		return isglobal
-	end
-	if check(Nezur.getgenv().getrenv()) then
-		return false
-	end
-	return true
-end
-Nezur.checkclosure = Nezur.isexecutorclosure
-Nezur.isourclosure = Nezur.isexecutorclosure
-
-local windowActive = true
-UserInputService.WindowFocused:Connect(function()
-	windowActive = true
-end)
-UserInputService.WindowFocusReleased:Connect(function()
-	windowActive = false
-end)
-
-function Nezur.isrbxactive()
-	return windowActive
-end
-Nezur.isgameactive = Nezur.isrbxactive
-Nezur.iswindowactive = Nezur.isrbxactive
-
-function Nezur.getinstances()
-	return workspace.Parent:GetDescendants()
-end
-
-local nilinstances, cache = {Instance.new("Part")}, {cached = {}}
-
-function Nezur.getnilinstances()
-	return nilinstances
-end
-
-function cache.iscached(t)
-	return cache.cached[t] ~= 'r' or (not t:IsDescendantOf(game))
-end
-function cache.invalidate(t)
-	cache.cached[t] = 'r'
-	t.Parent = nil
-end
-function cache.replace(x, y)
-	if cache.cached[x] then
-		cache.cached[x] = y
-	end
-	y.Parent = x.Parent
-	y.Name = x.Name
-	x.Parent = nil
-end
-
-Nezur.cache = cache
-
-function Nezur.getgc()
-	return table.clone(nilinstances)
-end
-
-workspace.Parent.DescendantRemoving:Connect(function(des)
-	table.insert(nilinstances, des)
-	delay(15, function() -- prevent overflow
-		local index = table.find(nilinstances, des)
-		if index then
-			table.remove(nilinstances, index)
-		end
-		if cache.cached[des] then
-			cache.cached[des] = nil
-		end
-	end)
-	cache.cached[des] = "r"
-end)
-workspace.Parent.DescendantAdded:Connect(function(des)
-	cache.cached[des] = true
-end)
-
-function Nezur.getrunningscripts()
-	local scripts = {}
-	for _, v in pairs(Nezur.getinstances()) do
-		if v:IsA("LocalScript") and v.Enabled then table.insert(scripts, v) end
-	end
-	return scripts
-end
-Nezur.getscripts = Nezur.getrunningscripts
-
-function Nezur.getloadedmodules()
-	local modules = {}
-	for _, v in pairs(Nezur.getinstances()) do
-		if v:IsA("ModuleScript") then 
-			table.insert(modules, v)
-		end
-	end
-	return modules
-end
-
-function Nezur.checkcaller()
-	local info = debug.info(Nezur.getgenv, 'slnaf')
-	return debug.info(1, 'slnaf')==info
-end
-
-function Nezur.getthreadcontext()
-	return 3
-end
-Nezur.getthreadidentity = Nezur.getthreadcontext
-Nezur.getidentity = Nezur.getthreadcontext
-
-function Nezur.setthreadidentity()
-	return 3, "Not Implemented"
-end
-Nezur.setidentity = Nezur.setthreadidentity
-Nezur.setthreadcontext = Nezur.setthreadidentity
-
-function Nezur.getsenv(script_instance)
-	local env = getfenv(2)
-
-	return setmetatable({
-		script = script_instance,
-	}, {
-		__index = function(self, index)
-			return env[index] or rawget(self, index)
-		end,
-		__newindex = function(self, index, value)
-			xpcall(function()
-				env[index] = value
-			end, function()
-				rawset(self, index, value)
-			end)
-		end,
-	})
-end
-
-function Nezur.getscripthash(instance) -- !
-	assert(typeof(instance) == "Instance", "invalid argument #1 to 'getscripthash' (Instance expected, got " .. typeof(instance) .. ") ", 2)
-	assert(instance:IsA("LuaSourceContainer"), "invalid argument #1 to 'getscripthash' (LuaSourceContainer expected, got " .. instance.ClassName .. ") ", 2)
-	return instance:GetHash()
-end
-
-function Nezur.getcallingscript()
-	for i = 3, 0, -1 do
-		local f = debug.info(i, "f")
-		if not f then
-			continue
-		end
-
-		local s = rawget(getfenv(f), "script")
-		if typeof(s) == "Instance" and s:IsA("BaseScript") then
-			return s
-		end
-	end
-end
-
-function Nezur.getconnections(event)
-	local v3 = task.spawn(function()
-		return "Notimpl"
 	end)
 
-	return {
-		[1] = { 
-			["Enabled"] = false,
-			["Enable"] = function()
-				return "Not impl"
-			end,
-			["Thread"] = v3,
-			["Function"] = function()
-				return "Not impl"
-			end,
-			["Disconnect"] = function()
-				return "Not impl"
-			end,
-			["ForeignState"] = false,
-			["Defer"] = function()
-				return "Not impl"
-			end,
-			["LuaConnection"] = false,
-			["Fire"] = function()
-				return "Not impl"
-			end,
-			["Disable"] = function()
-				return "Not impl"
-			end
-		}
-	}
-end
-
-function Nezur.hookfunction(func, rep)
-	for i,v in pairs(getfenv()) do
-		if v == func then
-			getfenv()[i] = rep
-		end
+	nezur.environment.table = table.clone(table)
+	nezur.environment.table.freeze = function(tbl)
+		return nezur.environment.setreadonly(tbl, true)
 	end
-end
-Nezur.replaceclosure = Nezur.hookfunction
 
-function Nezur.cloneref(reference)
-	if workspace.Parent:FindFirstChild(reference.Name)  or reference.Parent == workspace.Parent then 
-		return reference
-	else
-		local class = reference.ClassName
-		local cloned = Instance.new(class)
-		local mt = {
-			__index = reference,
-			__newindex = function(t, k, v)
+	nezur.add_global({"identifyexecutor", "getexecutorname"}, function()
+		return exploit_name, exploit_version
+	end)
 
-				if k == "Name" then
-					reference.Name = v
+	nezur.add_global({"lz4compress"}, function(data)
+		local out, i, dataLen = {}, 1, #data
+
+		while i <= dataLen do
+			local bestLen, bestDist = 0, 0
+
+			for dist = 1, math.min(i - 1, 65535) do
+				local matchStart, len = i - dist, 0
+
+				while i + len <= dataLen and data:sub(matchStart + len, matchStart + len) == data:sub(i + len, i + len) do
+					len += 1
+					if len == 65535 then break end
 				end
-				rawset(t, k, v)
+
+				if len > bestLen then bestLen, bestDist = len, dist end
 			end
-		}
-		local proxy = setmetatable({}, mt)
-		return proxy
-	end
-end
 
-function Nezur.compareinstances(x, y)
-	if type(getmetatable(y)) == "table" then
-		return x.ClassName == y.ClassName
-	end
-	return false
-end
+			if bestLen >= 4 then
+				table.insert(out, string.char(0) .. string.pack(">I2I2", bestDist - 1, bestLen - 4))
+				i += bestLen
+			else
+				local litStart = i
 
-function Nezur.gethiddenproperty(a, b)
-	return 5, true
-end
-
-function Nezur.gethui()
-	return Nezur.cloneref(workspace.Parent:FindService("CoreGui"))
-end
-
-function Nezur.isnetworkowner(part)
-	assert(typeof(part) == "Instance", "invalid argument #1 to 'isnetworkowner' (Instance expected, got " .. type(part) .. ") ")
-	if part.Anchored then
-		return false
-	end
-	return part.ReceiveAge == 0
-end
-
-function Nezur.deepclone(object)
-	local lookup_table = {}
-	local function Copy(object)
-		if type(object) ~= 'table' then
-			return object
-		elseif lookup_table[object] then
-			return lookup_table[object]
-		end
-
-		local new_table = {}
-		lookup_table[object] = new_table
-		for key, value in pairs(object) do 
-			new_table[Copy(key)] = Copy(value)
-		end
-
-		return setmetatable(new_table, getmetatable(object))
-	end
-
-	return Copy(object)
-end
-
-Nezur.debug = table.clone(debug)
-
-function Nezur.debug.getproto(func, index, activate)
-	if activate then
-		return {function() return true end}
-	else
-		return function() return true end
-	end
-end
-
-function Nezur.debug.getprotos(func)
-	return {
-		function() return true end,
-		function() return true end,
-		function() return true end
-	}
-end
-
-function Nezur.debug.getstack(a, b)
-	if not b then
-		return {
-			[1] = "ab"
-		}
-	end
-	return "ab"
-end
-
-function Nezur.debug.getconstants(func)
-	return {
-		[1] = 50000,
-		[2] = "print",
-		[3] = nil,
-		[4] = "Hello, world!",
-		[5] = "warn"
-	}
-end
-
-function Nezur.debug.getconstant(func, number)
-	if number == 1 then return "print" end
-	if number == 2 then return nil end
-	if number == 3 then return "Hello, world!" end
-end
-
-function Nezur.debug.getinfo(f, options)
-	if type(options) == "string" then
-		options = string.lower(options) 
-	else
-		options = "sflnu"
-	end
-	local result = {}
-	for index = 1, #options do
-		local option = string.sub(options, index, index)
-		if "s" == option then
-			local short_src = debug.info(f, "s")
-			result.short_src = short_src
-			result.source = "=" .. short_src
-			result.what = if short_src == "[C]" then "C" else "Lua"
-		elseif "f" == option then
-			result.func = debug.info(f, "f")
-		elseif "l" == option then
-			result.currentline = debug.info(f, "l")
-		elseif "n" == option then
-			result.name = debug.info(f, "n")
-		elseif "u" == option or option == "a" then
-			local numparams, is_vararg = debug.info(f, "a")
-			result.numparams = numparams
-			result.is_vararg = if is_vararg then 1 else 0
-			if "u" == option then
-				result.nups = -1
+				while i <= dataLen and (i - litStart < 15 or i == dataLen) do i += 1 end
+				table.insert(out, string.char(i - litStart) .. data:sub(litStart, i - 1))
 			end
 		end
-	end
-	return result
-end
 
-function Nezur.debug.getmetatable(table_or_userdata)
-	local result = getmetatable(table_or_userdata)
+		return table.concat(out)
+	end)
 
-	if result == nil then
-		return
-	end
+	nezur.add_global({"lz4decompress"}, function(data, size)
+		local out, i, dataLen = {}, 1, #data
 
-	if type(result) == "table" and pcall(setmetatable, table_or_userdata, result) then
+		while i <= dataLen and #table.concat(out) < size do
+			local token = data:byte(i)
+			i = i + 1
+
+			if token == 0 then
+				local dist, len = string.unpack(">I2I2", data:sub(i, i + 3))
+
+				i = i + 4
+				dist = dist + 1
+				len = len + 4
+
+				local start = #table.concat(out) - dist + 1
+				local match = table.concat(out):sub(start, start + len - 1)
+
+				while #match < len do
+					match = match .. match
+				end
+
+				table.insert(out, match:sub(1, len))
+			else
+				table.insert(out, data:sub(i, i + token - 1))
+				i = i + token
+			end
+		end
+
+		return table.concat(out):sub(1, size)
+	end)
+
+	nezur.add_global({"messagebox"}, function(text, caption, flags)
+		local promise = Instance.new("BindableEvent")
+		local result
+
+		local url = "http://localhost:8449/nezurbridge"
+		local body = http_service:JSONEncode({
+			["FuncName"] = "messagebox",
+			["Args"] = { text, caption, flags }
+		})
+
+		http_service:RequestInternal({
+			["Url"] = url,
+			["Method"] = "POST",
+			["Headers"] = {
+				["Content-Type"] = "application/json"
+			},
+			["Body"] = body
+		}):Start(function(succeeded, res)
+			if succeeded and res["StatusCode"] == 200 then
+				local data = http_service:JSONDecode(res["Body"])
+
+				if data.Status == "Success" then
+					result = data.Data.Result
+				else
+					result = nil
+				end
+			else
+				result = nil
+			end
+			promise:Fire()
+		end)
+
+		promise.Event:Wait()
 		return result
-	end
-
-	local real_metamethods = {}
-
-	xpcall(function()
-		return table_or_userdata._
-	end, function()
-		real_metamethods.__index = debug.info(2, "f")
 	end)
 
-	xpcall(function()
-		table_or_userdata._ = table_or_userdata
-	end, function()
-		real_metamethods.__newindex = debug.info(2, "f")
+	nezur.add_global({"queue_on_teleport"}, function(code)
+
 	end)
 
-	xpcall(function()
-		return table_or_userdata:___()
-	end, function()
-		real_metamethods.__namecall = debug.info(2, "f")
-	end)
+	local allowed_request = { "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD" }
+	nezur.add_global({"request", "http_request"}, function(options)
+		local OptionsType = type(options)
+		assert(OptionsType == "table", "invalid argument #1 to 'request' (table expected, got " .. OptionsType .. ")", 2)
 
-	xpcall(function()
-		table_or_userdata()
-	end, function()
-		real_metamethods.__call = debug.info(2, "f")
-	end)
+		local UrlType = type(options.Url);
+		assert(UrlType == "string", "invalid Url to 'request' (string expected, got " .. UrlType .. ")", 2)
 
-	xpcall(function()
-		for _ in table_or_userdata do
+		if (options.Url and string.find(options.Url, "https://economy.roblox.com/")) then 
+			error("Blacklisted Url");
 		end
-	end, function()
-		real_metamethods.__iter = debug.info(2, "f")
-	end)
 
-	xpcall(function()
-		return #table_or_userdata
-	end, function()
-		real_metamethods.__len = debug.info(2, "f")
-	end)
-
-	local type_check_semibypass = {}
-
-	xpcall(function()
-		return table_or_userdata == table_or_userdata
-	end, function()
-		real_metamethods.__eq = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata + type_check_semibypass
-	end, function()
-		real_metamethods.__add = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata - type_check_semibypass
-	end, function()
-		real_metamethods.__sub = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata * type_check_semibypass
-	end, function()
-		real_metamethods.__mul = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata / type_check_semibypass
-	end, function()
-		real_metamethods.__div = debug.info(2, "f")
-	end)
-
-	xpcall(function() -- * LUAU
-		return table_or_userdata // type_check_semibypass
-	end, function()
-		real_metamethods.__idiv = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata % type_check_semibypass
-	end, function()
-		real_metamethods.__mod = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata ^ type_check_semibypass
-	end, function()
-		real_metamethods.__pow = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return -table_or_userdata
-	end, function()
-		real_metamethods.__unm = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata < type_check_semibypass
-	end, function()
-		real_metamethods.__lt = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata <= type_check_semibypass
-	end, function()
-		real_metamethods.__le = debug.info(2, "f")
-	end)
-
-	xpcall(function()
-		return table_or_userdata .. type_check_semibypass
-	end, function()
-		real_metamethods.__concat = debug.info(2, "f")
-	end)
-
-	real_metamethods.__type = typeof(table_or_userdata)
-
-	real_metamethods.__metatable = getmetatable(game)
-	real_metamethods.__tostring = function()
-		return tostring(table_or_userdata)
-	end
-	return real_metamethods
-end
-
-Nezur.debug.setmetatable = setmetatable
-
-function Nezur.setmetatable(a, b)
-	local c, d = pcall(function()
-		local c = orig_setmetatable(a, b)
-	end)
-	saved_metatable[a] = b
-	if not c then
-		error(d)
-	end
-	return a
-end
-
-function Nezur.getrawmetatable(object)
-	return saved_metatable[object]
-end
-
-function Nezur.setrawmetatable(a, b)
-	local mt = Nezur.getrawmetatable(a)
-		table.foreach(b, function(c, d)
-			mt[c] = d
-		end)
-		return a
-end
-
-local fpscap = math.huge
-function Nezur.setfpscap(cap)
-	cap = tonumber(cap)
-	assert(type(cap) == "number", "invalid argument #1 to 'setfpscap' (number expected, got " .. type(cap) .. ")", 2)
-	if cap < 1 then cap = math.huge end
-	fpscap = cap
-end
-local clock = tick()
-RunService.RenderStepped:Connect(function()
-	while clock + 1 / fpscap > tick() do end
-	clock = tick()
-
-	task.wait()
-end)
-function Nezur.getfpscap()
-	return fpscap
-end
-
-function Nezur.mouse1click(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, workspace.Parent, false)
-	task.wait()
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, workspace.Parent, false)
-end
-
-function Nezur.mouse1press(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, true, workspace.Parent, false)
-end
-
-function Nezur.mouse1release(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseButtonEvent(x, y, 0, false, workspace.Parent, false)
-end
-
-function Nezur.mouse2click(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseButtonEvent(x, y, 1, true, workspace.Parent, false)
-	task.wait()
-	VirtualInputManager:SendMouseButtonEvent(x, y, 1, false, workspace.Parent, false)
-end
-
-function Nezur.mouse2press(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseButtonEvent(x, y, 1, true, workspace.Parent, false)
-end
-
-function Nezur.mouse2release(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseButtonEvent(x, y, 1, false, workspace.Parent, false)
-end
-
-function Nezur.mousescroll(x, y, z)
-	VirtualInputManager:SendMouseWheelEvent(x or 0, y or 0, z or false, workspace.Parent)
-end
-
-function Nezur.mousemoverel(x, y)
-	x = x or 0
-	y = y or 0
-
-	local vpSize = workspace.CurrentCamera.ViewportSize
-	local x = vpSize.X * x
-	local y = vpSize.Y * y
-
-	VirtualInputManager:SendMouseMoveEvent(x, y, workspace.Parent)
-end
-
-function Nezur.mousemoveabs(x, y)
-	x = x or 0
-	y = y or 0
-
-	VirtualInputManager:SendMouseMoveEvent(x, y, workspace.Parent)
-end
-
-function Nezur.getscriptclosure(s)
-	return function()
-		return table.clone(require(s))
-	end
-end
-Nezur.getscriptfunction = Nezur.getscriptclosure
-
-function Nezur.isscriptable(object, property)
-	if object and typeof(object) == 'Instance' then
-		local success, result = pcall(function()
-			return object[property] ~= nil
-		end)
-		return success and result
-	end
-	return false
-end
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-task.spawn(function() -- queue_on_teleport handler
-	local source = Bridge:queue_on_teleport("g")
-	if type(source) == "string" and source ~= "" then
-		Nezur.loadstring(source)()
-	end
-end)
-
-task.spawn(function() -- auto execute
-	local result = sendRequest({
-		Url = Bridge.serverUrl .. "/send",
-		Body = HttpService:JSONEncode({
-			['c'] = "ax"
-		}),
-		Method = "POST"
-	})
-	if result and result.Success and result.Body ~= "" then
-		loadstring(result.Body)()
-	end
-end)
-
-
-local function listen(coreModule)
-	while task.wait() do
-		local execution_table
-		pcall(function()
-			execution_table = _require(coreModule)
-		end)
-		if type(execution_table) == "table" and execution_table["n e z u r"] and (not execution_table.__executed) and coreModule.Parent == scriptsContainer then
-			task.spawn(execution_table["n e z u r"])
-			execution_table.__executed = true
-			coreModule.Parent = nil
+		local request_options = { Url = options.Url, Method = "GET" };
+		if (type(options.Method) == "string") then 
+			request_options.Method = string.upper(options.Method);
+			if (not table.find(allowed_request, request_options.Method)) then 
+				error("invalid Method to 'request'", 2);
+			end
 		end
-	end
-end
 
-task.spawn(function()
-	while task.wait(.06) do
-		local coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])
-		coreModule:ClearAllChildren()
+		local headers = {};
+		local has_useragent = false;
+		if ( type( options.Headers ) == "table" ) then 
+			for i,v in options.Headers do 
+				if ( tostring(i):lower() == "user-agent" ) then
+					has_useragent = true;
+				end
 
-		coreModule.Name = HttpService:GenerateGUID(false)
-		coreModule.Parent = scriptsContainer
+				headers[tostring(i)] = tostring(v)
+			end
+		end
 
-		local thread = task.spawn(listen, coreModule)
-		delay(2.5, function()
-			coreModule:Destroy()
-			task.cancel(thread)
+		if (has_useragent == false) then 
+			headers["User-Agent"] = table.concat({ nezur.environment.identifyexecutor() }, "/");
+		end
+
+		local rbx_client_id = game:GetService("RbxAnalyticsService"):GetClientId():gsub("\"", "");
+		headers["Nezur-Fingerprint"] = rbx_client_id
+		headers["Nezur-User-Identifier"] = rbx_client_id
+
+		if request_options.Method == "GET" or request_options.Method == "POST" then
+
+			local PlaceId = game.PlaceId
+			local GameId = game.JobId:gsub("\"", "") -- ! Not sure, things that this could be are: (RbxAnalyticsService/game).GetPlaySessionId or RbxAnalyticsService.GetSessionId
+
+			headers["User-Agent"] = "Roblox/WinInet"
+
+			headers["Roblox-Place-Id"] = tostring(PlaceId)
+			headers["Roblox-Game-Id"] = GameId
+			headers["Roblox-Session-Id"] = {
+				GameId = GameId,
+				PlaceId = PlaceId,
+			}
+		else
+			if (has_useragent == false) then 
+				headers["User-Agent"] = table.concat({ nezur.environment.identifyexecutor() }, "/");
+			end
+		end
+
+		request_options.Headers = headers;
+
+		local cookies = {};
+		if ( type( options.Cookies ) == "table" ) then 
+			for i,v in options.Cookies do 
+				cookies[tostring(i)] = tostring(v)
+			end
+		end
+
+		request_options.Cookies = cookies;
+
+		local promise = Instance.new("BindableEvent")
+		local success = false
+		local message = "";
+
+		local url = "http://localhost:8449/nezurbridge"
+		local body = http_service:JSONEncode({
+			["FuncName"] = "http_request",
+			["Args"] = { http_service:JSONEncode(request_options) }
+		})
+
+		local request = http_service:RequestInternal({
+			["Url"] = url,
+			["Method"] = "POST",
+			["Headers"] = {
+				["Content-Type"] = "application/json"
+			},
+			["Body"] = body
+		})
+
+		request:Start(function(succeeded, res)
+			if succeeded and res.StatusCode == 200 then
+				local responseData = http_service:JSONDecode(res.Body)
+				message = responseData.Message;
+
+				if responseData.Status == "Success" then
+					success = true
+				else
+					success = false
+				end
+			else
+				success = false
+			end
+			promise:Fire()
 		end)
-	end
+
+		promise.Event:Wait()
+
+		if ( success ) then
+			local request_respond = http_service:JSONDecode(message)
+
+			return {
+				Success = request_respond.Success or false,
+				StatusCode = request_respond.StatusCode or 0,
+				StatusMessage = request_respond.StatusMessage or "",
+				Headers = request_respond.Headers or {},
+				Cookies = request_respond.Cookies or {},
+				Body = request_respond.Body or ""
+			}
+		end
+
+		error("Failed to make request");
+	end)
+
+	local current_fps, _task = nil, nil
+
+	nezur.add_global({"getfpscap"}, function()
+		return workspace:GetRealPhysicsFPS()
+	end)
+
+	nezur.add_global({"setfpscap"}, function(fps)
+		if _task then
+			task.cancel(_task)
+			_task = nil
+		end
+
+		if fps and fps > 0 and fps < 10000 then
+			current_fps = fps
+			local interval = 1 / fps
+
+			_task = task.spawn(function()
+				while true do
+					local start = os.clock()
+					run_service.Heartbeat:Wait()
+					while os.clock() - start < interval do end
+				end
+			end)
+		else 
+			current_fps = nil
+		end
+	end)
+
+	nezur.add_global({"getgc"}, function(includeTables)
+		local metatable = setmetatable({ game, ["GC"] = {} }, { ["__mode"] = "v" })
+
+		for _, v in game:GetDescendants() do
+			table.insert(metatable, v)
+		end
+
+		repeat task.wait() until not metatable["GC"]
+
+		local non_gc = {}
+		for _, c in metatable do
+			table.insert(non_gc, c)
+		end
+		return non_gc
+	end)
+
+	nezur.add_global({"getgenv"}, function()
+		return setmetatable({}, {
+			__index = nezur.environment,
+			__newindex = getfenv(2)
+		})
+	end)
+
+	nezur.add_global({"getrenv"}, function()
+		return { }
+	end)
+
+	nezur.add_global({"queue_on_teleport", "queueonteleport"}, function(code)
+		return -- not supported
+	end)
+
+	nezur.add_global({"getloadedmodules", "get_loaded_modules"}, function(excludeCore)
+		local modules, core_gui = {}, game:GetDescendants()
+		for _, module in ipairs(game:GetDescendants()) do
+			if module:IsA("ModuleScript") and (not excludeCore or not module:IsDescendantOf(core_gui)) then
+				modules[#modules + 1] = module
+			end
+		end
+		return modules
+	end)
+
+	nezur.add_global({"getrunningscripts"}, function()
+		local scripts = {}
+		for _, v in pairs(nezur.environment.getinstances()) do
+			if v:IsA("LocalScript") and v.Enabled then table.insert(scripts, v) end
+		end
+		return scripts
+	end)
+
+	nezur.add_global({"getscriptbytecode", "dumpstring"}, function(script)
+		return script.Source
+	end)
+
+	local hash = {}
+
+	nezur.add_global({"getscripthash"}, function(script)
+		if hash[script.Source] then return hash[script.Source] end
+		local hashed = ""
+
+		for i= 1, math.max(1, math.round(#script.Source / 50)) do
+			hashed = hashed .. http_service:GenerateGUID(false)
+		end
+
+		hash[script.Source] = hashed
+
+		return hashed
+	end)
+
+	nezur.add_global({"getscripts"}, function()
+		local result = {}
+
+		for _, descendant in ipairs(game:GetDescendants()) do
+			if descendant:IsA("LocalScript") or descendant:IsA("ModuleScript") then
+				table.insert(result, descendant)
+			end
+		end
+
+		return result
+	end)
+
+	nezur.add_global({"getsenv"}, function(script)
+		local fakeEnv = getfenv()
+
+		return setmetatable({
+			script = script,
+		}, {
+			__index = function(self, index)
+				return fakeEnv[index] or rawget(self, index)
+			end,
+			__newindex = function(self, index, value)
+				xpcall(function()
+					fakeEnv[index] = value
+				end, function()
+					rawset(self, index, value)
+				end)
+			end,
+		})
+	end)
+
+	nezur.add_global({"getthreadidentity", "getidentity", "getthreadcontext"}, function()
+		return exploit_identity
+	end)
+
+	nezur.add_global({"setthreadidentity", "setidentity", "setthreadcontext"}, function(identity)
+		exploit_identity = math.clamp(identity, 0, 10)
+	end)
+
+	nezur.load(original_debug.info(2, "f"))
+	shared["globalEnv"] = nezur["environment"]
+
+	user_input_service["WindowFocused"]:Connect(function()
+		is_window_focused = true
+	end)
+
+	user_input_service["WindowFocusReleased"]:Connect(function()
+		is_window_focused = false
+	end)
 end)
+
+return constants

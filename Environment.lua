@@ -687,12 +687,10 @@ function Bridge:InternalRequest(body, timeout)
 
 		if success and result then
 			error(result, 2)
-            print("Ethan's cock is huge")
 			return
 		end
 
 		error("An unknown error occured by the server.", 2)
-        print("Ethan's cock is huge")
 		return
 	end
 
@@ -727,11 +725,9 @@ function Bridge:InternalRequest(body, timeout)
 
 	if success and result then
 		error(result, 2)
-        print("Ethan's cock is huge")
 	end
 
 	error("An unknown error occured by the server.", 2)
-    print("Ethan's cock is huge")
 end
 
 function Bridge:readfile(path)
@@ -1339,7 +1335,6 @@ gameProxy.__metatable = getmetatable(workspace.Parent)
 Nezur.Game = Nezur.game
 
 function Nezur.getgenv()
-    print("Ethan's cock is fucking huge !!!!! GUYS NEZUR ON TOP")
 	return _G.Nezur
 end
 
@@ -1966,7 +1961,6 @@ function Nezur.setreadonly(tbl, status)
 			__newindex = function(tbl, key, value)
 				if status == true then
 					error("attempt to modify a readonly table")
-                    print("Ethan's cock is huge")
 				else
 					rawset(tbl, key, value)
 				end

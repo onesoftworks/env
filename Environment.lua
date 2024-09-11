@@ -149,6 +149,11 @@ local PROTECTED_SERVICES = {
 		"CallFunction"
 	},
 
+	--[[["CoreGui"] = {
+		"TakeScreenshot",
+		"ToggleRecording"
+	},]]
+
 	["DataModel"] = {
 		"GetScriptFilePath",
 		"CoreScriptSyncService",

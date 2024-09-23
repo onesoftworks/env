@@ -14,9 +14,6 @@ local objectPointerContainer, scriptsContainer = Instance.new("Folder", NezurCon
 objectPointerContainer.Name = "Instance Pointers"
 scriptsContainer.Name = "Scripts"
 
-local old_game = game
-local n_game = newproxy(true)
-
 local Nezur = {
 	about = {
 		_name = 'Nezur',
@@ -52,425 +49,441 @@ local libs = {
 	}
 }
 
--- local PROTECTED_SERVICES = {
--- 	["AppUpdateService"] = {
--- 		"DisableDUAR",
--- 		"DisableDUARAndOpenSurvey",
--- 		"PerformManagedUpdate"
--- 	},
+local n_game = newproxy(true);
+local old_game = game;
 
--- 	["AssetManagerService"] = {
--- 		"GetFilename",
--- 		"Upload",
--- 		"AssetImportSession",
--- 		"AddNewPlace",
--- 		"PublishLinkedSource"
--- 	},
+local PROTECTED_SERVICES = {
+	["AppUpdateService"] = {
+		"DisableDUAR",
+		"DisableDUARAndOpenSurvey",
+		"PerformManagedUpdate"
+	},
 
--- 	["AssetService"] = {
--- 		"SavePlaceAsync"
--- 	},
+	["AssetManagerService"] = {
+		"GetFilename",
+		"Upload",
+		"AssetImportSession",
+		"AddNewPlace",
+		"PublishLinkedSource"
+	},
 
--- 	["AvatarEditorService"] = {
--- 		"NoPromptCreateOutfit",
--- 		"NoPromptDeleteOutfit",
--- 		"NoPromptRenameOutfit",
--- 		"NoPromptSaveAvatar",
--- 		"NoPromptSaveAvatarThumbnailCustomization",
--- 		"NoPromptSetFavorite",
--- 		"NoPromptUpdateOutfit",
--- 		"PerformCreateOutfitWithDescription",
--- 		"PerformDeleteOutfit",
--- 		"PerformRenameOutfit",
--- 		"PerformSaveAvatarWithDescription",
--- 		"PerformSetFavorite",
--- 		"PerformUpdateOutfit",
--- 		"SetAllowInventoryReadAccess",
--- 		"SignalCreateOutfitFailed",
--- 		"SignalCreateOutfitPermissionDenied",
--- 		"SignalDeleteOutfitFailed",
--- 		"SignalDeleteOutfitPermissionDenied",
--- 		"SignalRenameOutfitFailed",
--- 		"SignalRenameOutfitPermissionDenied",
--- 		"SignalSaveAvatarFailed",
--- 		"SignalSaveAvatarPermissionDenied",
--- 		"SignalSetFavoriteFailed",
--- 		"SignalSetFavoritePermissionDenied",
--- 		"SignalUpdateOutfitFailed",
--- 		"SignalUpdateOutfitPermissionDenied"
--- 	},
+	["AssetService"] = {
+		"SavePlaceAsync"
+	},
 
--- 	["AvatarImportService"] = {
--- 		"ImportFBXAnimationFromFilePathUserMayChooseModel",
--- 		"ImportFBXAnimationUserMayChooseModel",
--- 		"ImportFbxRigWithoutSceneLoad",
--- 		"ImportLoadedFBXAnimation"
--- 	},
+	["AvatarEditorService"] = {
+		"NoPromptCreateOutfit",
+		"NoPromptDeleteOutfit",
+		"NoPromptRenameOutfit",
+		"NoPromptSaveAvatar",
+		"NoPromptSaveAvatarThumbnailCustomization",
+		"NoPromptSetFavorite",
+		"NoPromptUpdateOutfit",
+		"PerformCreateOutfitWithDescription",
+		"PerformDeleteOutfit",
+		"PerformRenameOutfit",
+		"PerformSaveAvatarWithDescription",
+		"PerformSetFavorite",
+		"PerformUpdateOutfit",
+		"SetAllowInventoryReadAccess",
+		"SignalCreateOutfitFailed",
+		"SignalCreateOutfitPermissionDenied",
+		"SignalDeleteOutfitFailed",
+		"SignalDeleteOutfitPermissionDenied",
+		"SignalRenameOutfitFailed",
+		"SignalRenameOutfitPermissionDenied",
+		"SignalSaveAvatarFailed",
+		"SignalSaveAvatarPermissionDenied",
+		"SignalSetFavoriteFailed",
+		"SignalSetFavoritePermissionDenied",
+		"SignalUpdateOutfitFailed",
+		"SignalUpdateOutfitPermissionDenied"
+	},
 
--- 	["BrowserService"] = {
--- 		"CloseBrowserWindow",
--- 		"CopyAuthCookieFromBrowserToEngine",
--- 		"EmitHybridEvent",
--- 		"ExecuteJavaScript",
--- 		"OpenBrowserWindow",
--- 		"OpenNativeOverlay",
--- 		"OpenWeChatAuthWindow",
--- 		"ReturnToJavaScript",
--- 		"SendCommand"
--- 	},
+	["AvatarImportService"] = {
+		"ImportFBXAnimationFromFilePathUserMayChooseModel",
+		"ImportFBXAnimationUserMayChooseModel",
+		"ImportFbxRigWithoutSceneLoad",
+		"ImportLoadedFBXAnimation"
+	},
 
--- 	["CaptureService"] = {
--- 		"RetreiveCaptures",
--- 		"SaveCaptureToExternalStorage",
--- 		"SaveCapturesToExternalStorageAsync",
--- 		"SaveScreenshotCapture",
--- 		"DeleteCapturesAsync",
--- 		"DeleteCaptureAsync",
--- 		"DeleteCapture",
--- 		"DeleteCaptures",
--- 		"GetCaptureFilePathAsync",
--- 		"CaptureScreenshot"
--- 	},
+	["BrowserService"] = {
+		"CloseBrowserWindow",
+		"CopyAuthCookieFromBrowserToEngine",
+		"EmitHybridEvent",
+		"ExecuteJavaScript",
+		"OpenBrowserWindow",
+		"OpenNativeOverlay",
+		"OpenWeChatAuthWindow",
+		"ReturnToJavaScript",
+		"SendCommand"
+	},
 
--- 	["CommandService"] = {
--- 		"ChatLocal",
--- 		"RegisterExecutionCallback",
--- 		"CommandInstance",
--- 		"Execute",
--- 		"RegisterCommand",
--- 	},
+	["CaptureService"] = {
+		"RetreiveCaptures",
+		"SaveCaptureToExternalStorage",
+		"SaveCapturesToExternalStorageAsync",
+		"SaveScreenshotCapture",
+		"DeleteCapturesAsync",
+		"DeleteCaptureAsync",
+		"DeleteCapture",
+		"DeleteCaptures",
+		"GetCaptureFilePathAsync",
+		"CaptureScreenshot"
+	},
 
--- 	["ContentProvider"] = {
--- 		"GetFailedRequests",
--- 		"SetBaseUrl"
--- 	},
+	["CommandService"] = {
+		"ChatLocal",
+		"RegisterExecutionCallback",
+		"CommandInstance",
+		"Execute",
+		"RegisterCommand",
+	},
 
--- 	["ContextActionService"] = {
--- 		"CallFunction"
--- 	},
+	["ContentProvider"] = {
+		"GetFailedRequests",
+		"SetBaseUrl"
+	},
 
--- 	--[[["CoreGui"] = {
--- 		"TakeScreenshot",
--- 		"ToggleRecording"
--- 	},]]
+	["ContextActionService"] = {
+		"CallFunction"
+	},
 
--- 	["DataModel"] = {
--- 		"GetScriptFilePath",
--- 		"CoreScriptSyncService",
--- 		"DefineFastInt",
--- 		"DefineFastString",
--- 		"OpenScreenshotsFolder",
--- 		"OpenVideosFolder",
--- 		"SetFastFlagForTesting",
--- 		"SetFastIntForTesting",
--- 		"SetFastStringForTesting",
--- 		"ScreenshotReady",
--- 		"SetVideoInfo",
--- 		"ReportInGoogleAnalytics",
--- 		"Load"
--- 	},
+	--[[["CoreGui"] = {
+		"TakeScreenshot",
+		"ToggleRecording"
+	},]]
 
--- 	["GuiService"] = {
--- 		"BroadcastNotification",
--- 		"OpenBrowserWindow"
--- 	},
+	["DataModel"] = {
+		"GetScriptFilePath",
+		"CoreScriptSyncService",
+		"DefineFastInt",
+		"DefineFastString",
+		"OpenScreenshotsFolder",
+		"OpenVideosFolder",
+		"SetFastFlagForTesting",
+		"SetFastIntForTesting",
+		"SetFastStringForTesting",
+		"ScreenshotReady",
+		"SetVideoInfo",
+		"ReportInGoogleAnalytics",
+		"Load"
+	},
 
--- 	["HttpRbxApiService"] = {
--- 		"GetAsync",
--- 		"GetAsyncFullUrl",
--- 		"PostAsync",
--- 		"PostAsyncFullUrl",
--- 		"RequestAsync",
--- 		"RequestLimitedAsync",
--- 		"RequestInternal"
--- 	},
+	["GuiService"] = {
+		"BroadcastNotification",
+		"OpenBrowserWindow"
+	},
 
--- 	["HttpService"] = {
--- 		"requestInternal",
--- 		"RequestInternal"
--- 	},
+	["HttpRbxApiService"] = {
+		"GetAsync",
+		"GetAsyncFullUrl",
+		"PostAsync",
+		"PostAsyncFullUrl",
+		"RequestAsync",
+		"RequestLimitedAsync",
+		"RequestInternal"
+	},
 
--- 	["InsertService"] = {
--- 		-- "LoadLocalAsset", -- not too sure if we should blacklist this one or not
--- 		"GetLocalFileContents"
--- 	},
+	["HttpService"] = {
+		"requestInternal",
+		"RequestInternal"
+	},
 
--- 	["LocalizationService"] = {
--- 		"PromptDownloadGameTableToCSV",
--- 		"PromptExportToCSVs",
--- 		"PromptImportFromCSVs",
--- 		"PromptUploadCSVToGameTable",
--- 		"SetRobloxLocaleId",
--- 		"StartTextScraper",
--- 		"StopTextScraper"
--- 	},
+	["InsertService"] = {
+		-- "LoadLocalAsset", -- not too sure if we should blacklist this one or not
+		"GetLocalFileContents"
+	},
 
--- 	["LoginService"] = {
--- 		"Logout",
--- 		"PromptLogin"
--- 	},
+	["LocalizationService"] = {
+		"PromptDownloadGameTableToCSV",
+		"PromptExportToCSVs",
+		"PromptImportFromCSVs",
+		"PromptUploadCSVToGameTable",
+		"SetRobloxLocaleId",
+		"StartTextScraper",
+		"StopTextScraper"
+	},
 
--- 	["LogService"] = {
--- 		"ExecuteScript",
--- 		"GetHttpResultHistory",
--- 		"RequestHttpResultApproved",
--- 		"RequestServerHttpResult"
--- 	},
+	["LoginService"] = {
+		"Logout",
+		"PromptLogin"
+	},
 
--- 	["MarketplaceService"] = {
--- 		"GetRobuxBalance",
--- 		"PerformPurchaseV2",
--- 		"PrepareCollectiblesPurchase",
--- 		"GetSubscriptionProductInfoAsync",
--- 		"GetSubscriptionPurchaseInfoAsync",
--- 		"GetUserSubscriptionPaymentHistoryAsync",
--- 		"GetUserSubscriptionStatusAsync",
--- 		"PerformPurchase",
--- 		"PromptGamePassPurchase",
--- 		"PromptNativePurchase",
--- 		"PromptProductPurchase",
--- 		"PromptThirdPartyPurchase",
--- 		"ReportAssetSale",
--- 		"ReportRobuxUpsellStarted",
--- 		"SignalAssetTypePurchased",
--- 		"SignalClientPurchaseSuccess",
--- 		"SignalMockPurchasePremium",
--- 		"SignalServerLuaDialogClosed",
--- 		"PromptRobloxPurchase",
--- 		"PerformPurchaseV3",
--- 		"PromptBundlePurchase",
--- 		"PromptSubscriptionPurchase",
--- 		"PerformSubscriptionPurchase",
--- 		"PerformBulkPurchase",
--- 		"PromptBulkPurchase"
--- 	},
+	["LogService"] = {
+		"ExecuteScript",
+		"GetHttpResultHistory",
+		"RequestHttpResultApproved",
+		"RequestServerHttpResult"
+	},
 
--- 	["MaterialGenerationService"] = {
--- 		"RefillAccountingBalanceAsync",
--- 		"StartSession"
--- 	},
+	["MarketplaceService"] = {
+		"GetRobuxBalance",
+		"PerformPurchaseV2",
+		"PrepareCollectiblesPurchase",
+		"GetSubscriptionProductInfoAsync",
+		"GetSubscriptionPurchaseInfoAsync",
+		"GetUserSubscriptionPaymentHistoryAsync",
+		"GetUserSubscriptionStatusAsync",
+		"PerformPurchase",
+		"PromptGamePassPurchase",
+		"PromptNativePurchase",
+		"PromptProductPurchase",
+		"PromptThirdPartyPurchase",
+		"ReportAssetSale",
+		"ReportRobuxUpsellStarted",
+		"SignalAssetTypePurchased",
+		"SignalClientPurchaseSuccess",
+		"SignalMockPurchasePremium",
+		"SignalServerLuaDialogClosed",
+		"PromptRobloxPurchase",
+		"PerformPurchaseV3",
+		"PromptBundlePurchase",
+		"PromptSubscriptionPurchase",
+		"PerformSubscriptionPurchase",
+		"PerformBulkPurchase",
+		"PromptBulkPurchase"
+	},
 
--- 	["MaterialGenerationSession"] = {
--- 		"GenerateImagesAsync",
--- 		"GenerateMaterialMapsAsync",
--- 		"UploadMaterialAsync",
--- 	},
+	["MaterialGenerationService"] = {
+		"RefillAccountingBalanceAsync",
+		"StartSession"
+	},
 
--- 	["MessageBusService"] = {
--- 		"GetLast",
--- 		"GetMessageId",
--- 		"GetProtocolMethodRequestMessageId",
--- 		"GetProtocolMethodResponseMessageId",
--- 		"MakeRequest",
--- 		"Publish",
--- 		"PublishProtocolMethodRequest",
--- 		"PublishProtocolMethodResponse",
--- 		"SetRequestHandler",
--- 		"Subscribe",
--- 		"SubscribeToProtocolMethodRequest",
--- 		"SubscribeToProtocolMethodResponse"
--- 	},
+	["MaterialGenerationSession"] = {
+		"GenerateImagesAsync",
+		"GenerateMaterialMapsAsync",
+		"UploadMaterialAsync",
+	},
 
--- 	["NotificationService"] = {
--- 		"SwitchedToAppShellFeature"
--- 	},
+	["MessageBusService"] = {
+		"GetLast",
+		"GetMessageId",
+		"GetProtocolMethodRequestMessageId",
+		"GetProtocolMethodResponseMessageId",
+		"MakeRequest",
+		"Publish",
+		"PublishProtocolMethodRequest",
+		"PublishProtocolMethodResponse",
+		"SetRequestHandler",
+		"Subscribe",
+		"SubscribeToProtocolMethodRequest",
+		"SubscribeToProtocolMethodResponse"
+	},
 
--- 	["OmniRecommendationsService"] = {
--- 		"ClearSessionId",
--- 		"GetSessionId",
--- 		"MakeRequest"
--- 	},
+	["NotificationService"] = {
+		"SwitchedToAppShellFeature"
+	},
 
--- 	["PackageUIService"] = {
--- 		"ConvertToPackageUpload",
--- 		"PublishPackage",
--- 		"SetPackageVersion",
--- 	},
+	["OmniRecommendationsService"] = {
+		"ClearSessionId",
+		"GetSessionId",
+		"MakeRequest"
+	},
 
--- 	["Player"] = {
--- 		"AddToBlockList",
--- 		"RequestFriendship",
--- 		"RevokeFriendship",
--- 		"UpdatePlayerBlocked"
--- 	},
+	["PackageUIService"] = {
+		"ConvertToPackageUpload",
+		"PublishPackage",
+		"SetPackageVersion",
+	},
 
--- 	["Players"] = {
--- 		"ReportAbuse",
--- 		"ReportAbuseV3",
--- 		"TeamChat",
--- 		"WhisperChat"
--- 	},
+	["Player"] = {
+		"AddToBlockList",
+		"RequestFriendship",
+		"RevokeFriendship",
+		"UpdatePlayerBlocked"
+	},
 
--- 	["ScriptContext"] = {
--- 		"AddCoreScriptLocal",
--- 		"DeserializeScriptProfilerString",
--- 		"SaveScriptProfilingData"
--- 	},
+	["Players"] = {
+		"ReportAbuse",
+		"ReportAbuseV3",
+		"TeamChat",
+		"WhisperChat"
+	},
 
--- 	["VirtualInputManager"] = {
--- 		"sendRobloxEvent"
--- 	},
+	["ScriptContext"] = {
+		"AddCoreScriptLocal",
+		"DeserializeScriptProfilerString",
+		"SaveScriptProfilingData"
+	},
 
--- 	["OpenCloudService"] = {
--- 		"HttpRequestAsync"
--- 	},
+	["VirtualInputManager"] = {
+		"sendRobloxEvent"
+	},
 
--- 	["LinkingService"] = {
--- 		"DetectUrl",
--- 		"GetAndClearLastPendingUrl",
--- 		"GetLastLuaUrl",
--- 		"IsUrlRegistered",
--- 		"OpenUrl",
--- 		"RegisterLuaUrl",
--- 		"StartLuaUrlDelivery",
--- 		"StopLuaUrlDelivery",
--- 		"SupportsSwitchToSettingsApp",
--- 		"SwitchToSettingsApp",
--- 		"OnLuaUrl"
--- 	},
+	["OpenCloudService"] = {
+		"HttpRequestAsync"
+	},
 
--- 	["CommerceService"] = {
--- 		"PromptRealWorldCommerceBrowser",
--- 		"InExperienceBrowserRequested"
--- 	},
+	["LinkingService"] = {
+		"DetectUrl",
+		"GetAndClearLastPendingUrl",
+		"GetLastLuaUrl",
+		"IsUrlRegistered",
+		"OpenUrl",
+		"RegisterLuaUrl",
+		"StartLuaUrlDelivery",
+		"StopLuaUrlDelivery",
+		"SupportsSwitchToSettingsApp",
+		"SwitchToSettingsApp",
+		"OnLuaUrl"
+	},
 
--- 	["VoiceChatInternal"] = {
--- 		"SubscribeBlock",
--- 		"SubscribeUnblock"
--- 	},
+	["CommerceService"] = {
+		"PromptRealWorldCommerceBrowser",
+		"InExperienceBrowserRequested"
+	},
 
--- 	["ScriptProfilerService"] = {
--- 		"SaveScriptProfilingData"
--- 	},
+	["VoiceChatInternal"] = {
+		"SubscribeBlock",
+		"SubscribeUnblock"
+	},
 
--- 	["PublishService"] = {
--- 		"CreateAssetAndWaitForAssetId",
--- 		"CreateAssetOrAssetVersionAndPollAssetWithTelemetryAsync",
--- 		"PublishCageMeshAsync",
--- 		"PublishDescendantAssets"
--- 	},
+	["ScriptProfilerService"] = {
+		"SaveScriptProfilingData"
+	},
 
--- 	["VideoCaptureService"] = {
--- 		"GetCameraDevices"
--- 	},
+	["PublishService"] = {
+		"CreateAssetAndWaitForAssetId",
+		"CreateAssetOrAssetVersionAndPollAssetWithTelemetryAsync",
+		"PublishCageMeshAsync",
+		"PublishDescendantAssets"
+	},
 
--- 	["SocialService"] = {
--- 		"CanSendCallInviteAsync",
--- 		"CanSendGameInviteAsync",
--- 		"InvokeGameInvitePromptClosed",
--- 		"HideSelfView",
--- 		"InvokeIrisInvite",
--- 		"InvokeIrisInvitePromptClosed",
--- 		"PromptGameInvite",
--- 		"PromptPhoneBook",
--- 		"ShowSelfView",
--- 		"CallInviteStateChanged",
--- 		"GameInvitePromptClosed",
--- 		"IrisInviteInitiated",
--- 		"PhoneBookPromptClosed",
--- 		"PromptInviteRequested",
--- 		"PromptIrisInviteRequested"
--- 	}
--- };
+	["VideoCaptureService"] = {
+		"GetCameraDevices"
+	},
 
--- local cached_protected_services = { }
--- 	local function create_protected_service(service)
--- 		local service_name = service.ClassName
+	["SocialService"] = {
+		"CanSendCallInviteAsync",
+		"CanSendGameInviteAsync",
+		"InvokeGameInvitePromptClosed",
+		"HideSelfView",
+		"InvokeIrisInvite",
+		"InvokeIrisInvitePromptClosed",
+		"PromptGameInvite",
+		"PromptPhoneBook",
+		"ShowSelfView",
+		"CallInviteStateChanged",
+		"GameInvitePromptClosed",
+		"IrisInviteInitiated",
+		"PhoneBookPromptClosed",
+		"PromptInviteRequested",
+		"PromptIrisInviteRequested"
+	}
+};
 
--- 		if cached_protected_services[service_name] then 
--- 			return cached_protected_services[service_name]
--- 		end
+local cached_protected_services = {}
 
--- 		if PROTECTED_SERVICES[service_name] == nil then 
--- 			return service;
--- 		end
+local function create_protected_service(service)
+    local service_name = service.ClassName
 
--- 		local protected_service = newproxy(true)
--- 		local protected_service_metatable = getmetatable(protected_service)
--- 		local protected_service_functions = PROTECTED_SERVICES[service_name]
+    if cached_protected_services[service_name] then 
+        return cached_protected_services[service_name]
+    end
 
--- 		cached_protected_services[service_name] = protected_service
+    if PROTECTED_SERVICES[service_name] == nil then 
+        return service;
+    end
 
--- 		protected_service_metatable["__index"] = function(self, idx)
--- 			local s, service_index = pcall(function()
--- 				return service[idx]
--- 			end)
+    local protected_service = newproxy(true)
+    local protected_service_metatable = getmetatable(protected_service)
+    local protected_service_functions = PROTECTED_SERVICES[service_name]
 
--- 			if table.find(protected_service_functions, idx) then 
--- 				return function (...)
--- 					error("Attempting to call a dangerous/malicious function");
--- 				end
--- 			end
+    cached_protected_services[service_name] = protected_service
 
--- 			if service_index and type(service_index) == "function" then
--- 				return function(self, ...)
--- 					return service_index(service, ...)
--- 				end
--- 			end
+    protected_service_metatable["__index"] = function(self, idx)
+        local s, service_index = pcall(function()
+            return service[idx]
+        end)
 
--- 			if ( s ) then
--- 				return service_index;
--- 			end
+        if table.find(protected_service_functions, idx) then 
+            return function (...)
+                error("Attempting to call a dangerous/malicious function");
+            end
+        end
 
--- 			return nil;
--- 		end
+        if service_index and type(service_index) == "function" then
+            return function(self, ...)
+                return service_index(service, ...)
+            end
+        end
 
--- 		protected_service_metatable["__newindex"] = function(self, idx, value)
--- 			service[idx]=value;
--- 		end
+        if (s) then
+            return service_index;
+        end
 
--- 		local o_tstring = tostring(service);
--- 		protected_service_metatable["__tostring"] = function(self)
--- 			return o_tstring
--- 		end
+        return nil;
+    end
 
--- 		protected_service_metatable["__metatable"] = getmetatable(service);
+    protected_service_metatable["__newindex"] = function(self, idx, value)
+        service[idx]=value;
+    end
 
--- 		return protected_service
--- 	end
+    local o_tstring = tostring(service);
+    protected_service_metatable["__tostring"] = function(self)
+        return o_tstring
+    end
 
---     local n_game_metatable = getmetatable(n_game);
---     n_game_metatable["__index"] = function(metatable, idx)
---         local s, game_index = pcall(function()
---             return old_game[idx]
---         end)
+    protected_service_metatable["__metatable"] = getmetatable(service);
 
--- 		if table.find(PROTECTED_SERVICES["DataModel"], idx) then 
--- 			return function (...)
--- 				error("Attempting to call a dangerous/malicious function");
--- 			end
--- 		end
+    return protected_service
+end
 
---         if (idx:lower() == "getservice" or idx:lower() == "findservice") then
---             return function(self, service)
--- 				return create_protected_service(old_game:GetService(service));
--- 			end
---         elseif game_index and type(game_index) == "function" then
---             return function(self, ...)
---                 return game_index(old_game, ...)
---             end
---         end
+local n_game_metatable = getmetatable(n_game);
+n_game_metatable["__index"] = function(metatable, idx)
+    local s, game_index = pcall(function()
+        return old_game[idx]
+    end)
 
--- 		if ( s ) then
--- 			if ( typeof(game_index) == "Instance" ) then
--- 				return create_protected_service( game_index );
--- 			end
+    if table.find(PROTECTED_SERVICES["DataModel"], idx) then 
+        return function (...)
+            error("Attempting to call a dangerous/malicious function");
+        end
+    end
 
--- 			return game_index;
--- 		end
+    if idx == "HttpGet" or idx == "HttpGetAsync" then 
+        return function(self, ...)
+            return Nezur.environment.httpget(...)
+        end
+    elseif (idx:lower() == "getservice" or idx:lower() == "findservice") then
+        return function(self, service)
+            return create_protected_service(old_game:GetService(service));
+        end
+    elseif idx == "HttpPost" or idx == "HttpPostAsync" then 
+        return function(self, ...)
+            return Nezur.environment.httppost(...)
+        end
+    elseif idx == "GetObjects" or idx == "GetObjectsAsync" then 
+        return function(self, ...)
+            return Nezur.environment.getobjects(...)
+        end
+    elseif game_index and type(game_index) == "function" then
+        return function(self, ...)
+            return game_index(old_game, ...)
+        end
+    end
 
--- 		return nil;
---     end
+    if (s) then
+        if (typeof(game_index) == "Instance") then
+            return create_protected_service(game_index);
+        end
 
---     n_game_metatable["__newindex"] = function(metatable, idx, value)
---         old_game[idx] = value
---     end
+        return game_index;
+    end
 
---     n_game_metatable["__tostring"] = function(metatable)
---         return "Game";
---     end
+    return nil;
+end
 
---     n_game_metatable["__metatable"] = getmetatable(old_game);
+n_game_metatable["__newindex"] = function(metatable, idx, value)
+    old_game[idx] = value
+end
+
+n_game_metatable["__tostring"] = function(metatable)
+    return "Game";
+end
+
+n_game_metatable["__metatable"] = getmetatable(old_game);
 
 if script.Name == "VRNavigation" then
     warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")

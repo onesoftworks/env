@@ -14,6 +14,9 @@ local objectPointerContainer, scriptsContainer = Instance.new("Folder", NezurCon
 objectPointerContainer.Name = "Instance Pointers"
 scriptsContainer.Name = "Scripts"
 
+local old_game = game
+local n_game = newproxy(true)
+
 local Nezur = {
 	about = {
 		_name = 'Nezur',
@@ -48,9 +51,6 @@ local libs = {
 		['url'] = "https://pastebinp.com/raw/p9ixiaDf"
 	}
 }
-
-local n_game = newproxy(true);
-local old_game = game;
 
 local PROTECTED_SERVICES = {
 	["AppUpdateService"] = {
@@ -373,117 +373,104 @@ local PROTECTED_SERVICES = {
 	}
 };
 
-local cached_protected_services = {}
+local cached_protected_services = { }
+	local function create_protected_service(service)
+		local service_name = service.ClassName
 
-local function create_protected_service(service)
-    local service_name = service.ClassName
+		if cached_protected_services[service_name] then 
+			return cached_protected_services[service_name]
+		end
 
-    if cached_protected_services[service_name] then 
-        return cached_protected_services[service_name]
-    end
+		if PROTECTED_SERVICES[service_name] == nil then 
+			return service;
+		end
 
-    if PROTECTED_SERVICES[service_name] == nil then 
-        return service;
-    end
+		local protected_service = newproxy(true)
+		local protected_service_metatable = getmetatable(protected_service)
+		local protected_service_functions = PROTECTED_SERVICES[service_name]
 
-    local protected_service = newproxy(true)
-    local protected_service_metatable = getmetatable(protected_service)
-    local protected_service_functions = PROTECTED_SERVICES[service_name]
+		cached_protected_services[service_name] = protected_service
 
-    cached_protected_services[service_name] = protected_service
+		protected_service_metatable["__index"] = function(self, idx)
+			local s, service_index = pcall(function()
+				return service[idx]
+			end)
 
-    protected_service_metatable["__index"] = function(self, idx)
-        local s, service_index = pcall(function()
-            return service[idx]
+			if table.find(protected_service_functions, idx) then 
+				return function (...)
+					error("Attempting to call a dangerous/malicious function");
+				end
+			end
+
+			if service_index and type(service_index) == "function" then
+				return function(self, ...)
+					return service_index(service, ...)
+				end
+			end
+
+			if ( s ) then
+				return service_index;
+			end
+
+			return nil;
+		end
+
+		protected_service_metatable["__newindex"] = function(self, idx, value)
+			service[idx]=value;
+		end
+
+		local o_tstring = tostring(service);
+		protected_service_metatable["__tostring"] = function(self)
+			return o_tstring
+		end
+
+		protected_service_metatable["__metatable"] = getmetatable(service);
+
+		return protected_service
+	end
+
+    local n_game_metatable = getmetatable(n_game);
+    n_game_metatable["__index"] = function(metatable, idx)
+        local s, game_index = pcall(function()
+            return old_game[idx]
         end)
 
-        if table.find(protected_service_functions, idx) then 
-            return function (...)
-                error("Attempting to call a dangerous/malicious function");
-            end
-        end
+		if table.find(PROTECTED_SERVICES["DataModel"], idx) then 
+			return function (...)
+				error("Attempting to call a dangerous/malicious function");
+			end
+		end
 
-        if service_index and type(service_index) == "function" then
+        if (idx:lower() == "getservice" or idx:lower() == "findservice") then
+            return function(self, service)
+				return create_protected_service(old_game:GetService(service));
+			end
+        elseif game_index and type(game_index) == "function" then
             return function(self, ...)
-                return service_index(service, ...)
+                return game_index(old_game, ...)
             end
         end
 
-        if (s) then
-            return service_index;
-        end
+		if ( s ) then
+			if ( typeof(game_index) == "Instance" ) then
+				return create_protected_service( game_index );
+			end
 
-        return nil;
+			return game_index;
+		end
+
+		return nil;
     end
 
-    protected_service_metatable["__newindex"] = function(self, idx, value)
-        service[idx]=value;
+    n_game_metatable["__newindex"] = function(metatable, idx, value)
+        old_game[idx] = value
     end
 
-    local o_tstring = tostring(service);
-    protected_service_metatable["__tostring"] = function(self)
-        return o_tstring
+    n_game_metatable["__tostring"] = function(metatable)
+        return "Game";
     end
 
-    protected_service_metatable["__metatable"] = getmetatable(service);
-
-    return protected_service
-end
-
-local n_game_metatable = getmetatable(n_game);
-n_game_metatable["__index"] = function(metatable, idx)
-    local s, game_index = pcall(function()
-        return old_game[idx]
-    end)
-
-    if table.find(PROTECTED_SERVICES["DataModel"], idx) then 
-        return function (...)
-            error("Attempting to call a dangerous/malicious function");
-        end
-    end
-
-    if idx == "HttpGet" or idx == "HttpGetAsync" then 
-        return function(self, ...)
-            return Nezur.environment.httpget(...)
-        end
-    elseif (idx:lower() == "getservice" or idx:lower() == "findservice") then
-        return function(self, service)
-            return create_protected_service(old_game:GetService(service));
-        end
-    elseif idx == "HttpPost" or idx == "HttpPostAsync" then 
-        return function(self, ...)
-            return Nezur.environment.httppost(...)
-        end
-    elseif idx == "GetObjects" or idx == "GetObjectsAsync" then 
-        return function(self, ...)
-            return Nezur.environment.getobjects(...)
-        end
-    elseif game_index and type(game_index) == "function" then
-        return function(self, ...)
-            return game_index(old_game, ...)
-        end
-    end
-
-    if (s) then
-        if (typeof(game_index) == "Instance") then
-            return create_protected_service(game_index);
-        end
-
-        return game_index;
-    end
-
-    return nil;
-end
-
-n_game_metatable["__newindex"] = function(metatable, idx, value)
-    old_game[idx] = value
-end
-
-n_game_metatable["__tostring"] = function(metatable)
-    return "Game";
-end
-
-n_game_metatable["__metatable"] = getmetatable(old_game);
+    n_game_metatable["__metatable"] = getmetatable(old_game);
 
 if script.Name == "VRNavigation" then
     warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")

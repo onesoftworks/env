@@ -14,14 +14,17 @@ local objectPointerContainer, scriptsContainer = Instance.new("Folder", NezurCon
 objectPointerContainer.Name = "Instance Pointers"
 scriptsContainer.Name = "Scripts"
 
-local old_game = game
-local n_game = newproxy(true)
+local n_game = newproxy(true);
+local old_game = game;
 
 local Nezur = {
 	about = {
 		_name = 'Nezur',
 		_version = '%NEZUR_VERSION%'
-	}
+	},
+	shared = {
+		globalEnv = { game = n_game }
+	},
 }
 table.freeze(Nezur.about)
 
@@ -34,8 +37,6 @@ for _, descendant in CoreGui.RobloxGui.Modules:GetDescendants() do
 		break
 	end
 end
-
-_G.Nezur = Nezur
 
 local libs = {
 	{
@@ -149,10 +150,10 @@ local PROTECTED_SERVICES = {
 		"CallFunction"
 	},
 
-	--[[["CoreGui"] = {
+	["CoreGui"] = {
 		"TakeScreenshot",
 		"ToggleRecording"
-	},]]
+	},
 
 	["DataModel"] = {
 		"GetScriptFilePath",
@@ -411,7 +412,7 @@ local cached_protected_services = { }
 			if ( s ) then
 				return service_index;
 			end
-
+	
 			return nil;
 		end
 
@@ -441,10 +442,22 @@ local cached_protected_services = { }
 			end
 		end
 
-        if (idx:lower() == "getservice" or idx:lower() == "findservice") then
+        if idx == "HttpGet" or idx == "HttpGetAsync" then 
+            return function(self, ...)
+				return Nezur.HttpGet(...)
+            end
+        elseif (idx:lower() == "getservice" or idx:lower() == "findservice") then
             return function(self, service)
 				return create_protected_service(old_game:GetService(service));
 			end
+        elseif idx == "HttpPost" or idx == "HttpPostAsync" then 
+            return function(self, ...)
+                return Nezur.HttpPost(...)
+            end
+        elseif idx == "GetObjects" or idx == "GetObjectsAsync" then 
+            return function(self, ...)
+                return Nezur.GetObjects(...)
+            end
         elseif game_index and type(game_index) == "function" then
             return function(self, ...)
                 return game_index(old_game, ...)
@@ -455,7 +468,7 @@ local cached_protected_services = { }
 			if ( typeof(game_index) == "Instance" ) then
 				return create_protected_service( game_index );
 			end
-
+	
 			return game_index;
 		end
 
@@ -471,6 +484,8 @@ local cached_protected_services = { }
     end
 
     n_game_metatable["__metatable"] = getmetatable(old_game);
+
+_G.Nezur = Nezur
 
 if script.Name == "VRNavigation" then
     warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")
@@ -2709,4 +2724,4 @@ task.spawn(function()
 			task.cancel(thread)
 		end)
 	end
-end)
+end)		

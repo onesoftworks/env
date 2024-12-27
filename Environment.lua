@@ -488,7 +488,7 @@ local cached_protected_services = { }
 _G.Nezur = Nezur
 
 if script.Name == "VRNavigation" then
-    warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")
+    warn("[NEZUR] Initialized made by 1Cheats.com")
 end
 
 local lookupValueToCharacter = buffer.create(64)
@@ -1260,13 +1260,13 @@ function Nezur.request(options)
 		)
 	end
 	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for cock #1 to 'request.Header' (jizz expected, got " .. type(options.Url) .. ") ", 2) end
-	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur (owned by lucas !!!!!! please buy me) / Version " .. tostring(Nezur.about._version)
+	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur Executor / Version " .. tostring(Nezur.about._version)
 	options.Headers["Exploit-Guid"] = tostring(hwid)
 	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
 	options.Headers["Roblox-Game-Id"] = tostring(game.GameId)
 	options.Headers["Roblox-Session-Id"] = HttpService:JSONEncode({
-		["GameId"] = tostring(game.GameId),
+		["GameId"] = tostring(game.JobId),
 		["PlaceId"] = tostring(game.PlaceId)
 	})
 	local response = Bridge:request(options)

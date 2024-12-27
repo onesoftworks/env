@@ -1267,7 +1267,7 @@ function Nezur.request(options)
 	options.Headers["Roblox-Game-Id"] = tostring(game.GameId)
 	options.Headers["Roblox-Session-Id"] = HttpService:JSONEncode({
 		["GameId"] = tostring(game.JobId),
-		["PlaceId"] = tostring(game.PlaceId)
+		["PlaceId"] = tostring(game.JobId)
 	})
 	local response = Bridge:request(options)
 	if httpSpy then

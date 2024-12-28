@@ -2562,17 +2562,7 @@ function Nezur.getrawmetatable(object)
 	return saved_metatable[object]
 end
 
-		function Nezur.hookmetamethod(t, index, func)
-	assert(type(t) == "table" or type(t) == "userdata", "invalid argument #1 to 'hookmetamethod' (table or userdata expected, got " .. type(t) .. ")", 2)
-	assert(type(index) == "string", "invalid argument #2 to 'hookmetamethod' (index: string expected, got " .. type(t) .. ")", 2)
-	assert(type(func) == "function", "invalid argument #3 to 'hookmetamethod' (function expected, got " .. type(t) .. ")", 2)
-	local o = t
-	local mt = Nezur.debug.getmetatable(t)
-	mt[index] = func
-	t = mt
-	return o
-end
-
+	
 function Nezur.setrawmetatable(a, b)
 	local mt = Nezur.getrawmetatable(a)
 		table.foreach(b, function(c, d)
@@ -2683,6 +2673,18 @@ function Nezur.isscriptable(object, property)
 	end
 	return false
 end
+		
+function Nezur.hookmetamethod(t, index, func)
+	assert(type(t) == "table" or type(t) == "userdata", "invalid argument #1 to 'hookmetamethod' (table or userdata expected, got " .. type(t) .. ")", 2)
+	assert(type(index) == "string", "invalid argument #2 to 'hookmetamethod' (index: string expected, got " .. type(t) .. ")", 2)
+	assert(type(func) == "function", "invalid argument #3 to 'hookmetamethod' (function expected, got " .. type(t) .. ")", 2)
+	local o = t
+	local mt = Nezur.debug.getmetatable(t)
+	mt[index] = func
+	t = mt
+	return o
+end
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 

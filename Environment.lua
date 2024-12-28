@@ -2263,7 +2263,6 @@ function Nezur.getconnections(event)
 	}
 end
 
-local Nezur = {}
 
 function Nezur.hookfunction(func, rep)
   return func  -- Return the original function unchanged

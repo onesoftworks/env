@@ -2263,14 +2263,32 @@ function Nezur.getconnections(event)
 	}
 end
 
+local Nezur = {}
+
 function Nezur.hookfunction(func, rep)
-	for i,v in pairs(getfenv()) do
-		if v == func then
-			getfenv()[i] = rep
-		end
-	end
+    -- Table to store references to original functions
+    Nezur._originals = Nezur._originals or {}
+
+    -- Store the original function if not already stored
+    if not Nezur._originals[func] then
+        Nezur._originals[func] = func
+    end
+
+    -- Replace the function in the environment
+    for i, v in pairs(getfenv(2)) do
+        if v == func then
+            getfenv(2)[i] = rep
+        end
+    end
+
+    -- Return the original function
+    return Nezur._originals[func]
 end
+
+-- Alias replaceclosure to hookfunction
 Nezur.replaceclosure = Nezur.hookfunction
+
+
 
 function Nezur.cloneref(reference)
 	if workspace.Parent:FindFirstChild(reference.Name)  or reference.Parent == workspace.Parent then 

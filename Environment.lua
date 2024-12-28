@@ -2674,22 +2674,35 @@ function Nezur.isscriptable(object, property)
 	return false
 end
 		
-function Nezur.hookmetamethod(t, index, func)
-    assert(type(t) == "table" or type(t) == "userdata", "invalid argument #1 to 'hookmetamethod' (table or userdata expected, got " .. type(t) .. ")", 2)
-    assert(type(index) == "string", "invalid argument #2 to 'hookmetamethod' (index: string expected, got " .. type(index) .. ")", 2)
-    assert(type(func) == "function", "invalid argument #3 to 'hookmetamethod' (function expected, got " .. type(func) .. ")", 2)
+function Nezur.hookmetamethod(object, methodName, newFunction)
+    assert(type(object) == "table" or type(object) == "userdata", "First argument must be a table or userdata")
+    assert(type(methodName) == "string", "Second argument must be a string")
+    assert(type(newFunction) == "function", "Third argument must be a function")
 
     -- Retrieve the metatable
-    local mt = Nezur.debug.getmetatable(t)
-    if not mt then
-        error("No metatable available for the given table or userdata", 2)
+    local metatable = getmetatable(object)
+    if not metatable then
+        error("Failed to get metatable: Object has no metatable", 2)
     end
 
-    -- Check if the metamethod exists
-    local existing = mt[index]
-    if type(existing) ~= "function" and existing ~= nil then
-        error("The existing metatable entry at index '" .. index .. "' is not a function or nil", 2)
+    if metatable.__metatable then
+        error("Cannot modify locked metatable", 2)
     end
+
+    local originalMethod = metatable[methodName]
+    if type(originalMethod) ~= "function" then
+        error("Metatable method '" .. methodName .. "' is not a function", 2)
+    end
+
+    -- Replace the metamethod
+    metatable[methodName] = function(...)
+        local result = newFunction(...)
+        return result or originalMethod(...)
+    end
+
+    return originalMethod -- Return the original method for reference
+end
+
 
     -- Wrap the new function around the existing metamethod
     mt[index] = function(...)

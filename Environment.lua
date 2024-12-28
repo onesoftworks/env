@@ -2265,19 +2265,21 @@ end
 
 local Nezur = {}
 
-function Nezur.hookfunction(func, rep)
-    -- Table to store references to original functions
-    Nezur._originals = Nezur._originals or {}
+local Nezur = {}
 
-    -- Store the original function if not already stored
+-- Table to track original and hooked functions
+Nezur._originals = {}
+
+function Nezur.hookfunction(func, rep)
+    -- Save the original function if not already saved
     if not Nezur._originals[func] then
         Nezur._originals[func] = func
     end
 
     -- Replace the function in the environment
-    for i, v in pairs(getfenv(2)) do
-        if v == func then
-            getfenv(2)[i] = rep
+    for name, value in pairs(getfenv(2)) do
+        if value == func then
+            getfenv(2)[name] = rep
         end
     end
 

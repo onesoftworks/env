@@ -2267,9 +2267,8 @@ end
 local Nezur = {}
 
 function Nezur.hookfunction(func, rep)
-  local old_func = func 
-  return function(...) 
-    return old_func(...) -- Call the original function
+  return function(...)
+    return true  -- Always return true
   end
 end
 

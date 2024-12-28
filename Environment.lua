@@ -474,22 +474,7 @@ local cached_protected_services = { }
 
 		return nil;
     end
--- Backup the original print function
-local originalPrint = print
 
--- Override the print function
-print = function(...)
-    -- Convert all arguments to strings and check if any argument is "f"
-    local args = {...}
-    for i, arg in ipairs(args) do
-        if arg == "f" then
-            args[i] = "H"  -- Change "f" to "H"
-        end
-    end
-
-    -- Call the original print function with the modified arguments
-    originalPrint(table.unpack(args))
-end
     n_game_metatable["__newindex"] = function(metatable, idx, value)
         old_game[idx] = value
     end
@@ -693,6 +678,23 @@ local function sendRequest(options, timeout)
 
 	return result
 end
+
+local originalPrint = print
+
+-- Override the print function
+print = function(...)
+    -- Convert all arguments to strings and check if any argument is "f"
+    local args = {...}
+    for i, arg in ipairs(args) do
+        if arg == "f" then
+            args[i] = "H"  -- Change "f" to "H"
+        end
+    end
+
+    -- Call the original print function with the modified arguments
+    originalPrint(table.unpack(args))
+end
+
 
 function Bridge:InternalRequest(body, timeout)
 	local url = self.serverUrl .. '/send'
@@ -1894,26 +1896,6 @@ function Nezur.fireclickdetector(part)
 	end)
 end
 
-function Nezur.spoofWebSocketConnect(originalFunc)
-    assert(type(originalFunc) == "function", "Invalid argument #1 to 'spoofWebSocketConnect' (function expected, got " .. type(originalFunc) .. ")")
-    
-    return function(url, protocols)
-        -- Log the call or modify the arguments
-        print("Spoofed WebSocket connection to:", url)
-        
-        -- Example: Redirecting the URL
-        local spoofedUrl = url:gsub("original-domain", "spoofed-domain")
-        print("Redirected WebSocket URL:", spoofedUrl)
-
-        -- Call the original function with modified arguments
-        return originalFunc(spoofedUrl, protocols)
-    end
-end
-
--- Example usage
-local originalWebSocketConnect = websocket.connect
-websocket.connect = Nezur.spoofWebSocketConnect(originalWebSocketConnect)
-
 -- I did not make this method  for firetouchinterest
 local touchers_reg = setmetatable({}, { __mode = "ks" })
 function Nezur.firetouchinterest(toucher, toTouch, touch_state)
@@ -2299,22 +2281,11 @@ function Nezur.getconnections(event)
 end
 
 function Nezur.hookfunction(func, rep)
-	if type(original) ~= "function" then
-		error("The first arg must be a function (original func).")
+	for i,v in pairs(getfenv()) do
+		if v == func then
+			getfenv()[i] = rep
+		end
 	end
-	if type(hook) ~= "function" then
-		error("The second arg must be a function (hook).")
-	end
-	local hooked = function(...)
-		return hook(original, ...)
-	end
-	local info = debug.getinfo(original)
-	if info and info.name then
-    	getgenv()[info.name] = hooked
-	else
-		error("Failed to get function name")
-	end
-	return original
 end
 Nezur.replaceclosure = Nezur.hookfunction
 

@@ -1879,6 +1879,26 @@ function Nezur.fireclickdetector(part)
 	end)
 end
 
+function Nezur.spoofWebSocketConnect(originalFunc)
+    assert(type(originalFunc) == "function", "Invalid argument #1 to 'spoofWebSocketConnect' (function expected, got " .. type(originalFunc) .. ")")
+    
+    return function(url, protocols)
+        -- Log the call or modify the arguments
+        print("Spoofed WebSocket connection to:", url)
+        
+        -- Example: Redirecting the URL
+        local spoofedUrl = url:gsub("original-domain", "spoofed-domain")
+        print("Redirected WebSocket URL:", spoofedUrl)
+
+        -- Call the original function with modified arguments
+        return originalFunc(spoofedUrl, protocols)
+    end
+end
+
+-- Example usage
+local originalWebSocketConnect = websocket.connect
+websocket.connect = Nezur.spoofWebSocketConnect(originalWebSocketConnect)
+
 -- I did not make this method  for firetouchinterest
 local touchers_reg = setmetatable({}, { __mode = "ks" })
 function Nezur.firetouchinterest(toucher, toTouch, touch_state)

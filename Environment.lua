@@ -2709,14 +2709,7 @@ local function listen(coreModule)
 		end
 	end
 end
-local callbackValues = {}
 
-function getcallbackvalue(instance, propertyName)
-    if callbackValues[instance] and callbackValues[instance][propertyName] then
-        return callbackValues[instance][propertyName]
-    end
-    return nil
-end
 task.spawn(function()
 	while task.wait(.06) do
 		local coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])

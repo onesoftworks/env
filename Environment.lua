@@ -2268,7 +2268,18 @@ function Nezur.hookfunction(func, rep)
     return false 
   end
 end
+Lua
 
+local function hookfunction(func, rep)
+  return func 
+end
+
+local function test()
+    return false
+end
+local ref = hookfunction(test, function()
+    return false
+end)
 Nezur.replaceclosure = Nezur.hookfunction
 
 function Nezur.cloneref(reference)

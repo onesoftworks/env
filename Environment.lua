@@ -2672,59 +2672,6 @@ function Nezur.isscriptable(object, property)
 	end
 	return false
 end
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-task.spawn(function() -- queue_on_teleport handler
-	local source = Bridge:queue_on_teleport("g")
-	if type(source) == "string" and source ~= "" then
-		Nezur.loadstring(source)()
-	end
-end)
-
-task.spawn(function() -- auto execute
-	local result = sendRequest({
-		Url = Bridge.serverUrl .. "/send",
-		Body = HttpService:JSONEncode({
-			['c'] = "ax"
-		}),
-		Method = "POST"
-	})
-	if result and result.Success and result.Body ~= "" then
-		loadstring(result.Body)()
-	end
-end)
-
-
-local function listen(coreModule)
-	while task.wait() do
-		local execution_table
-		pcall(function()
-			execution_table = _require(coreModule)
-		end)
-		if type(execution_table) == "table" and execution_table["n e z u r"] and (not execution_table.__executed) and coreModule.Parent == scriptsContainer then
-			task.spawn(execution_table["n e z u r"])
-			execution_table.__executed = true
-			coreModule.Parent = nil
-		end
-	end
-end
-
-task.spawn(function()
-	while task.wait(.06) do
-		local coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])
-		coreModule:ClearAllChildren()
-
-		coreModule.Name = HttpService:GenerateGUID(false)
-		coreModule.Parent = scriptsContainer
-
-		local thread = task.spawn(listen, coreModule)
-		delay(2.5, function()
-			coreModule:Destroy()
-			task.cancel(thread)
-		end)
-	end
-end)		
 
 		local hookedMetaMethods = {}
 
@@ -3038,3 +2985,56 @@ function sethiddenproperty(instance, propertyName, value)
     
     instance:SetAttribute(propertyName, value)
 end
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+task.spawn(function() -- queue_on_teleport handler
+	local source = Bridge:queue_on_teleport("g")
+	if type(source) == "string" and source ~= "" then
+		Nezur.loadstring(source)()
+	end
+end)
+
+task.spawn(function() -- auto execute
+	local result = sendRequest({
+		Url = Bridge.serverUrl .. "/send",
+		Body = HttpService:JSONEncode({
+			['c'] = "ax"
+		}),
+		Method = "POST"
+	})
+	if result and result.Success and result.Body ~= "" then
+		loadstring(result.Body)()
+	end
+end)
+
+
+local function listen(coreModule)
+	while task.wait() do
+		local execution_table
+		pcall(function()
+			execution_table = _require(coreModule)
+		end)
+		if type(execution_table) == "table" and execution_table["n e z u r"] and (not execution_table.__executed) and coreModule.Parent == scriptsContainer then
+			task.spawn(execution_table["n e z u r"])
+			execution_table.__executed = true
+			coreModule.Parent = nil
+		end
+	end
+end
+
+task.spawn(function()
+	while task.wait(.06) do
+		local coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])
+		coreModule:ClearAllChildren()
+
+		coreModule.Name = HttpService:GenerateGUID(false)
+		coreModule.Parent = scriptsContainer
+
+		local thread = task.spawn(listen, coreModule)
+		delay(2.5, function()
+			coreModule:Destroy()
+			task.cancel(thread)
+		end)
+	end
+end)		

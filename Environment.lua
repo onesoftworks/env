@@ -2263,20 +2263,14 @@ function Nezur.getconnections(event)
 	}
 end
 
-local Nezur = {}
-
 function Nezur.hookfunction(func, rep)
-  local old_func = func 
-  func = function(...) 
-    return rep(...) 
-  end
-  setmetatable(func, { __metatable = false }) -- Prevent further metatable modifications
-  return old_func
+	for i,v in pairs(getfenv()) do
+		if v == func then
+			getfenv()[i] = rep
+		end
+	end
 end
-
 Nezur.replaceclosure = Nezur.hookfunction
-
-
 
 function Nezur.cloneref(reference)
 	if workspace.Parent:FindFirstChild(reference.Name)  or reference.Parent == workspace.Parent then 

@@ -2263,15 +2263,13 @@ function Nezur.getconnections(event)
 	}
 end
 
-
-local Nezur = {}
-
 function Nezur.hookfunction(func, rep)
-  return function(...)
-    return true  -- Always return true
-  end
+	for i,v in pairs(getfenv()) do
+		if v == func then
+			getfenv()[i] = rep
+		end
+	end
 end
-
 Nezur.replaceclosure = Nezur.hookfunction
 
 function Nezur.cloneref(reference)

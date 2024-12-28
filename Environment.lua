@@ -679,23 +679,6 @@ local function sendRequest(options, timeout)
 	return result
 end
 
-local originalPrint = print
-
--- Override the print function
-print = function(...)
-    -- Convert all arguments to strings and check if any argument is "f"
-    local args = {...}
-    for i, arg in ipairs(args) do
-        if arg == "f" then
-            args[i] = "H"  -- Change "f" to "H"
-        end
-    end
-
-    -- Call the original print function with the modified arguments
-    originalPrint(table.unpack(args))
-end
-
-
 function Bridge:InternalRequest(body, timeout)
 	local url = self.serverUrl .. '/send'
 	if body.Url then

@@ -2264,13 +2264,22 @@ function Nezur.getconnections(event)
 end
 
 function Nezur.hookfunction(func, rep)
-	local env = getfenv(debug.info(2, 'f'))
-	for i, v in pairs(env) do
-		if v == func then
-			env[i] = rep
-			return rep
-		end
+	if type(original) ~= "function" then
+		error("The first arg must be a function (original func).")
 	end
+	if type(hook) ~= "function" then
+		error("The second arg must be a function (hook).")
+	end
+	local hooked = function(...)
+		return hook(original, ...)
+	end
+	local info = debug.getinfo(original)
+	if info and info.name then
+    	getgenv()[info.name] = hooked
+	else
+		error("Failed to get function name")
+	end
+	return original
 end
 Nezur.replaceclosure = Nezur.hookfunction
 

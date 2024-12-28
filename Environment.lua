@@ -2264,9 +2264,11 @@ function Nezur.getconnections(event)
 end
 
 function Nezur.hookfunction(func, rep)
-	for i,v in pairs(getfenv()) do
+	local env = getfenv(debug.info(2, 'f'))
+	for i, v in pairs(env) do
 		if v == func then
-			getfenv()[i] = rep
+			env[i] = rep
+			return rep
 		end
 	end
 end

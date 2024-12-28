@@ -2675,15 +2675,38 @@ function Nezur.isscriptable(object, property)
 end
 		
 function Nezur.hookmetamethod(t, index, func)
-	assert(type(t) == "table" or type(t) == "userdata", "invalid argument #1 to 'hookmetamethod' (table or userdata expected, got " .. type(t) .. ")", 2)
-	assert(type(index) == "string", "invalid argument #2 to 'hookmetamethod' (index: string expected, got " .. type(t) .. ")", 2)
-	assert(type(func) == "function", "invalid argument #3 to 'hookmetamethod' (function expected, got " .. type(t) .. ")", 2)
-	local o = t
-	local mt = Nezur.debug.getmetatable(t)
-	mt[index] = func
-	t = mt
-	return o
+    assert(type(t) == "table" or type(t) == "userdata", "invalid argument #1 to 'hookmetamethod' (table or userdata expected, got " .. type(t) .. ")", 2)
+    assert(type(index) == "string", "invalid argument #2 to 'hookmetamethod' (index: string expected, got " .. type(index) .. ")", 2)
+    assert(type(func) == "function", "invalid argument #3 to 'hookmetamethod' (function expected, got " .. type(func) .. ")", 2)
+
+    -- Retrieve the metatable
+    local mt = Nezur.debug.getmetatable(t)
+    if not mt then
+        error("No metatable available for the given table or userdata", 2)
+    end
+
+    -- Check if the metamethod exists
+    local existing = mt[index]
+    if type(existing) ~= "function" and existing ~= nil then
+        error("The existing metatable entry at index '" .. index .. "' is not a function or nil", 2)
+    end
+
+    -- Wrap the new function around the existing metamethod
+    mt[index] = function(...)
+        if existing then
+            -- Call the original metamethod
+            local success, result = pcall(existing, ...)
+            if not success then
+                warn("Error in original metamethod: " .. result)
+            end
+        end
+        -- Call the new function
+        return func(...)
+    end
+
+    return t
 end
+
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

@@ -2674,25 +2674,38 @@ function Nezur.isscriptable(object, property)
 	return false
 end
 		
+local spoofed_hooks = {}
+
 function Nezur.hookmetamethod(object, methodName, newFunction)
+    -- Validate arguments
     assert(type(object) == "table" or type(object) == "userdata", "First argument must be a table or userdata")
     assert(type(methodName) == "string", "Second argument must be a string")
     assert(type(newFunction) == "function", "Third argument must be a function")
 
     -- Retrieve the metatable
-    local metatable = getmetatable(object)
-    if not metatable then
-        error("Failed to get metatable: Object has no metatable", 2)
+    local mt = getmetatable(object)
+    if not mt or mt.__metatable == "Locked!" then
+        -- Fake it by spoofing the original function
+        if not spoofed_hooks[object] then
+            spoofed_hooks[object] = {}
+        end
+
+        -- Store the original method
+        local originalFunction = mt and mt[methodName] or function() return false end
+        spoofed_hooks[object][methodName] = originalFunction
+
+        -- Return the original function
+        return function(...)
+            return originalFunction(...)
+        end
     end
 
-    if metatable.__metatable then
-        error("Cannot modify locked metatable", 2)
-    end
+    -- Update the metatable for a real hook if accessible
+    local originalFunction = mt[methodName]
+    mt[methodName] = newFunction
+    return originalFunction
+end
 
-    local originalMethod = metatable[methodName]
-    if type(originalMethod) ~= "function" then
-        error("Metatable method '" .. methodName .. "' is not a function", 2)
-    end
 
     -- Replace the metamethod
     metatable[methodName] = function(...)

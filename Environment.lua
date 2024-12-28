@@ -1264,9 +1264,9 @@ function Nezur.request(options)
 	options.Headers["Exploit-Guid"] = tostring(hwid)
 	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
-	options.Headers["Roblox-Game-Id"] = tostring(game.JobId)
+	options.Headers["Roblox-Game-Id"] = tostring(game.GameId)
 	options.Headers["Roblox-Session-Id"] = HttpService:JSONEncode({
-		["GameId"] = tostring(game.JobId),
+		["GameId"] = tostring(game.GameId),
 		["PlaceId"] = tostring(game.PlaceId)
 	})
 	local response = Bridge:request(options)

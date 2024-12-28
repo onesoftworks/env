@@ -2264,8 +2264,13 @@ function Nezur.getconnections(event)
 end
 
 
+local Nezur = {}
+
 function Nezur.hookfunction(func, rep)
-  return func  -- Return the original function unchanged
+  local old_func = func 
+  return function(...) 
+    return old_func(...) -- Call the original function
+  end
 end
 
 Nezur.replaceclosure = Nezur.hookfunction

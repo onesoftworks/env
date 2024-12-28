@@ -2266,12 +2266,11 @@ end
 local Nezur = {}
 
 function Nezur.hookfunction(func, rep)
-  return function(...) 
-    return false  -- Always return false
-  end
+  return func  -- Return the original function unchanged
 end
 
 Nezur.replaceclosure = Nezur.hookfunction
+
 function Nezur.cloneref(reference)
 	if workspace.Parent:FindFirstChild(reference.Name)  or reference.Parent == workspace.Parent then 
 		return reference

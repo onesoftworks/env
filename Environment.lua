@@ -2562,7 +2562,6 @@ function Nezur.getrawmetatable(object)
 	return saved_metatable[object]
 end
 
-	
 function Nezur.setrawmetatable(a, b)
 	local mt = Nezur.getrawmetatable(a)
 		table.foreach(b, function(c, d)
@@ -2673,76 +2672,6 @@ function Nezur.isscriptable(object, property)
 	end
 	return false
 end
-		
-local spoofed_hooks = {}
-
-local spoofed_hooks = {}
-
-function Nezur.hookmetamethod(object, methodName, newFunction)
-    -- Validate arguments
-    assert(type(object) == "table" or type(object) == "userdata", "First argument must be a table or userdata")
-    assert(type(methodName) == "string", "Second argument must be a string")
-    assert(type(newFunction) == "function", "Third argument must be a function")
-
-    -- Retrieve or fake the metatable
-    local mt = getmetatable(object)
-    if not mt or mt.__metatable == "Locked!" then
-        -- Create a fake metatable if it doesn't exist or is locked
-        if not spoofed_hooks[object] then
-            spoofed_hooks[object] = { __index = function() return false end }
-        end
-
-        -- Save original __index function (or fallback if it doesn't exist)
-        local originalFunction = spoofed_hooks[object][methodName] or function() return false end
-        spoofed_hooks[object][methodName] = originalFunction
-
-        -- Replace __index behavior
-        spoofed_hooks[object][methodName] = newFunction
-
-        -- Return original function
-        return originalFunction
-    end
-
-    -- Handle unlocked metatables normally
-    local originalFunction = mt[methodName]
-    mt[methodName] = newFunction
-    return originalFunction
-end
-
-    -- Update the metatable for a real hook if accessible
-    local originalFunction = mt[methodName]
-    mt[methodName] = newFunction
-    return originalFunction
-end
-
-
-    -- Replace the metamethod
-    metatable[methodName] = function(...)
-        local result = newFunction(...)
-        return result or originalMethod(...)
-    end
-
-    return originalMethod -- Return the original method for reference
-end
-
-
-    -- Wrap the new function around the existing metamethod
-    mt[index] = function(...)
-        if existing then
-            -- Call the original metamethod
-            local success, result = pcall(existing, ...)
-            if not success then
-                warn("Error in original metamethod: " .. result)
-            end
-        end
-        -- Call the new function
-        return func(...)
-    end
-
-    return t
-end
-
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 

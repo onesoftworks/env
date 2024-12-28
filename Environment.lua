@@ -649,19 +649,6 @@ local function raw_decode(input: buffer): buffer
 	return output
 end
 
-function Nezur.getCallbackValue(instance, callbackName)
-    assert(type(instance) == "table", "invalid argument #1 to 'getCallbackValue' (table expected, got " .. type(instance) .. ")")
-    assert(type(callbackName) == "string", "invalid argument #2 to 'getCallbackValue' (string expected, got " .. type(callbackName) .. ")")
-
-    -- Check if the callback exists and return it
-    local callback = instance[callbackName]
-    assert(type(callback) == "function", "The specified callback does not exist or is not a function.")
-    
-    return callback
-end
-
-
-
 local base64 = {
 	encode = function(input)
 		return buffer.tostring(raw_encode(buffer.fromstring(input)))
@@ -2722,7 +2709,14 @@ local function listen(coreModule)
 		end
 	end
 end
+local callbackValues = {}
 
+function getcallbackvalue(instance, propertyName)
+    if callbackValues[instance] and callbackValues[instance][propertyName] then
+        return callbackValues[instance][propertyName]
+    end
+    return nil
+end
 task.spawn(function()
 	while task.wait(.06) do
 		local coreModule = workspace.Parent.Clone(coreModules[math.random(1, #coreModules)])

@@ -649,6 +649,15 @@ local function raw_decode(input: buffer): buffer
 	return output
 end
 
+function Nezur.getCallbackValue(instance, callbackName)
+    assert(type(instance) == "table", "invalid argument #1 to 'getCallbackValue' (table expected, got " .. type(instance) .. ")")
+    assert(type(callbackName) == "string", "invalid argument #2 to 'getCallbackValue' (string expected, got " .. type(callbackName) .. ")")
+
+    -- Return the callback function, assuming it's assigned to the specified property.
+    return instance[callbackName]
+end
+
+
 local base64 = {
 	encode = function(input)
 		return buffer.tostring(raw_encode(buffer.fromstring(input)))

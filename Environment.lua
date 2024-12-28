@@ -2271,23 +2271,14 @@ local Nezur = {}
 Nezur._originals = {}
 
 function Nezur.hookfunction(func, rep)
-    -- Save the original function if not already saved
-    if not Nezur._originals[func] then
-        Nezur._originals[func] = func
-    end
-
-    -- Replace the function in the environment
-    for name, value in pairs(getfenv(2)) do
-        if value == func then
-            getfenv(2)[name] = rep
-        end
-    end
-
-    -- Return the original function
-    return Nezur._originals[func]
+  local old_func = func 
+  func = function(...) 
+    return rep(...) 
+  end
+  setmetatable(func, { __metatable = false }) -- Prevent further metatable modifications
+  return old_func
 end
 
--- Alias replaceclosure to hookfunction
 Nezur.replaceclosure = Nezur.hookfunction
 
 

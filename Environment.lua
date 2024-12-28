@@ -653,9 +653,13 @@ function Nezur.getCallbackValue(instance, callbackName)
     assert(type(instance) == "table", "invalid argument #1 to 'getCallbackValue' (table expected, got " .. type(instance) .. ")")
     assert(type(callbackName) == "string", "invalid argument #2 to 'getCallbackValue' (string expected, got " .. type(callbackName) .. ")")
 
-    -- Return the callback function, assuming it's assigned to the specified property.
-    return instance[callbackName]
+    -- Check if the callback exists and return it
+    local callback = instance[callbackName]
+    assert(type(callback) == "function", "The specified callback does not exist or is not a function.")
+    
+    return callback
 end
+
 
 
 local base64 = {

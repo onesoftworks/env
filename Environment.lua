@@ -2265,11 +2265,6 @@ end
 
 local Nezur = {}
 
-local Nezur = {}
-
--- Table to track original and hooked functions
-Nezur._originals = {}
-
 function Nezur.hookfunction(func, rep)
   local old_func = func 
   func = function(...) 

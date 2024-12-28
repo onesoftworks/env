@@ -2264,12 +2264,11 @@ function Nezur.getconnections(event)
 end
 
 function Nezur.hookfunction(func, rep)
-	for i,v in pairs(getfenv()) do
-		if v == func then
-			getfenv()[i] = rep
-		end
-	end
+  return function(...) 
+    return false 
+  end
 end
+
 Nezur.replaceclosure = Nezur.hookfunction
 
 function Nezur.cloneref(reference)

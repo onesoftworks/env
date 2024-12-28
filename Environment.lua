@@ -2676,29 +2676,38 @@ end
 		
 local spoofed_hooks = {}
 
+local spoofed_hooks = {}
+
 function Nezur.hookmetamethod(object, methodName, newFunction)
     -- Validate arguments
     assert(type(object) == "table" or type(object) == "userdata", "First argument must be a table or userdata")
     assert(type(methodName) == "string", "Second argument must be a string")
     assert(type(newFunction) == "function", "Third argument must be a function")
 
-    -- Retrieve the metatable
+    -- Retrieve or fake the metatable
     local mt = getmetatable(object)
     if not mt or mt.__metatable == "Locked!" then
-        -- Fake it by spoofing the original function
+        -- Create a fake metatable if it doesn't exist or is locked
         if not spoofed_hooks[object] then
-            spoofed_hooks[object] = {}
+            spoofed_hooks[object] = { __index = function() return false end }
         end
 
-        -- Store the original method
-        local originalFunction = mt and mt[methodName] or function() return false end
+        -- Save original __index function (or fallback if it doesn't exist)
+        local originalFunction = spoofed_hooks[object][methodName] or function() return false end
         spoofed_hooks[object][methodName] = originalFunction
 
-        -- Return the original function
-        return function(...)
-            return originalFunction(...)
-        end
+        -- Replace __index behavior
+        spoofed_hooks[object][methodName] = newFunction
+
+        -- Return original function
+        return originalFunction
     end
+
+    -- Handle unlocked metatables normally
+    local originalFunction = mt[methodName]
+    mt[methodName] = newFunction
+    return originalFunction
+end
 
     -- Update the metatable for a real hook if accessible
     local originalFunction = mt[methodName]

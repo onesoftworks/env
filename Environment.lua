@@ -488,7 +488,7 @@ local cached_protected_services = { }
 _G.Nezur = Nezur
 
 if script.Name == "VRNavigation" then
-    warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")
+    warn("[NEZUR] Initialized, Developed by 1Cheats.com)
 end
 
 local lookupValueToCharacter = buffer.create(64)

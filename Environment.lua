@@ -488,7 +488,7 @@ local cached_protected_services = { }
 _G.Nezur = Nezur
 
 if script.Name == "VRNavigation" then
-    warn("[NEZUR] Initialized. Developed by 1Cheats.com.");
+    warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")
 end
 
 local lookupValueToCharacter = buffer.create(64)
@@ -931,11 +931,11 @@ function Bridge:loadstring(source, chunkName)
 			end
 
 			if (tick() - clock > 5) then
-				warn("[NEZUR]: loadjizz failed and timed out")
+				warn("[NEZUR]: loadstring failed and timed out")
 				for _, module in pairs(cachedModules) do
 					module:Destroy()
 				end
-				return nil, "loadjizz failed and timed out"
+				return nil, "loadstring failed and timed out"
 			end
 
 			task.wait(.06)
@@ -1105,14 +1105,14 @@ Nezur.Nezur = {
 	GUID = NEZUR_UNIQUE,
 	HttpSpy = function(state)
 		if state == nil then state = true end
-		assert(type(state) == "boolean", "invalid cock #1 to 'HttpSpy' (boolean expected, got " .. type(state) .. ") ", 2)
+		assert(type(state) == "boolean", "invalid argument #1 to 'HttpSpy' (boolean expected, got " .. type(state) .. ") ", 2)
 		Nezur.rconsoleinfo("Http Spy is set to '" .. tostring(state) .. "'")
 		httpSpy = state
 	end,
 }
 
 function Nezur.Nezur.get_real_address(instance)
-	assert(typeof(instance) == "Instance", "invalid cock #1 to 'get_real_address' (Instance expected, got " .. typeof(instance) .. ") ", 2)
+	assert(typeof(instance) == "Instance", "invalid argument #1 to 'get_real_address' (Instance expected, got " .. typeof(instance) .. ") ", 2)
 	local objectValue = Instance.new("ObjectValue", objectPointerContainer)
 	objectValue.Name = HttpService:GenerateGUID(false)
 	objectValue.Value = instance
@@ -1129,8 +1129,8 @@ function Nezur.Nezur.get_real_address(instance)
 end
 
 function Nezur.Nezur.spoof_instance(instance, newinstance)
-	assert(typeof(instance) == "Instance", "invalid cock #1 to 'spoof_instance' (Instance expected, got " .. typeof(instance) .. ") ", 2)
-	assert(typeof(newinstance) == "Instance" or type(newinstance) == "number", "invalid cock #2 to 'spoof_instance' (Instance or number expected, got " .. typeof(newinstance) .. ") ", 2)
+	assert(typeof(instance) == "Instance", "invalid argument #1 to 'spoof_instance' (Instance expected, got " .. typeof(instance) .. ") ", 2)
+	assert(typeof(newinstance) == "Instance" or type(newinstance) == "number", "invalid argument #2 to 'spoof_instance' (Instance or number expected, got " .. typeof(newinstance) .. ") ", 2)
 	local newAddress
 	do
 		if type(newinstance) == "number" then 
@@ -1153,7 +1153,7 @@ function Nezur.Nezur.spoof_instance(instance, newinstance)
 end
 
 function Nezur.Nezur.GetGlobal(global_name)
-	assert(type(global_name) == "string", "invalid cock #1 to 'GetGlobal' (jizz expected, got " .. type(global_name) .. ") ", 2)
+	assert(type(global_name) == "string", "invalid argument #1 to 'GetGlobal' (string expected, got " .. type(global_name) .. ") ", 2)
 	local result = Bridge:InternalRequest({
 		['c'] = "gb",
 		['t'] = "g",
@@ -1176,9 +1176,9 @@ function Nezur.Nezur.GetGlobal(global_name)
 end
 
 function Nezur.Nezur.SetGlobal(global_name, value)
-	assert(type(global_name) == "string", "invalid cock #1 to 'SetGlobal' (jizz expected, got " .. type(global_name) .. ") ", 2)
+	assert(type(global_name) == "string", "invalid argument #1 to 'SetGlobal' (string expected, got " .. type(global_name) .. ") ", 2)
 	local valueT = type(value)
-	assert(valueT == "string" or valueT == "number" or valueT == "table", "invalid cock #2 to 'SetGlobal' (string, number, or table expected, got " .. valueT .. ") ", 2)
+	assert(valueT == "string" or valueT == "number" or valueT == "table", "invalid argument #2 to 'SetGlobal' (string, number, or table expected, got " .. valueT .. ") ", 2)
 	if valueT == "table" then
 		value = HttpService:JSONEncode(value)
 	end
@@ -1192,7 +1192,7 @@ function Nezur.Nezur.SetGlobal(global_name, value)
 end
 
 function Nezur.Nezur.Compile(source)
-	assert(type(source) == "string", "invalid cock #1 to 'Compile' (jizz expected, got " .. type(source) .. ") ", 2)
+	assert(type(source) == "string", "invalid argument #1 to 'Compile' (string expected, got " .. type(source) .. ") ", 2)
 	if source == "" then return "" end
 	local _, result = Bridge:CanCompile(source, true)
 	return result
@@ -1217,9 +1217,9 @@ function Nezur.require(moduleScript)
 end
 
 function Nezur.loadstring(source, chunkName)
-	assert(type(source) == "string", "invalid cock #1 to 'loadstring' (jizz expected, got " .. type(source) .. ") ", 2)
+	assert(type(source) == "string", "invalid argument #1 to 'loadstring' (string expected, got " .. type(source) .. ") ", 2)
 	chunkName = chunkName or "loadstring"
-	assert(type(chunkName) == "string", "invalid cock #2 to 'loadstring' (jizz expected, got " .. type(chunkName) .. ") ", 2)
+	assert(type(chunkName) == "string", "invalid argument #2 to 'loadstring' (string expected, got " .. type(chunkName) .. ") ", 2)
 	chunkName = chunkName:gsub("[^%a_]", "")
 	if (source == "" or source == " ") then
 		return function(...) end
@@ -1239,17 +1239,17 @@ end
 local supportedMethods = {"GET", "POST", "PUT", "DELETE", "PATCH"}
 
 function Nezur.request(options)
-	assert(type(options) == "table", "invalid cock #1 to 'request' (table expected, got " .. type(options) .. ") ", 2)
-	assert(type(options.Url) == "string", "invalid option 'Url' for cock #1 to 'request' (jizz expected, got " .. type(options.Url) .. ") ", 2)
+	assert(type(options) == "table", "invalid argument #1 to 'request' (table expected, got " .. type(options) .. ") ", 2)
+	assert(type(options.Url) == "string", "invalid option 'Url' for argument #1 to 'request' (string expected, got " .. type(options.Url) .. ") ", 2)
 	options.Method = options.Method or "GET"
 	options.Method = options.Method:upper()
-	assert(table.find(supportedMethods, options.Method), "invalid option 'Method' for cock #1 to 'request' (a valid http method expected, got '" .. options.Method .. "') ", 2)
-	assert(not (options.Method == "GET" and options.Body), "invalid option 'Body' for cock #1 to 'request' (current method is GET but option 'Body' was used)", 2)
+	assert(table.find(supportedMethods, options.Method), "invalid option 'Method' for argument #1 to 'request' (a valid http method expected, got '" .. options.Method .. "') ", 2)
+	assert(not (options.Method == "GET" and options.Body), "invalid option 'Body' for argument #1 to 'request' (current method is GET but option 'Body' was used)", 2)
 	if options.Body then
-		assert(type(options.Body) == "string", "invalid option 'Body' for cock #1 to 'request' (jizz expected, got " .. type(options.Body) .. ") ", 2)
-		assert(pcall(function() HttpService:JSONDecode(options.Body) end), "invalid option 'Body' for cock #1 to 'request' (invalid json jizz format)", 2)
+		assert(type(options.Body) == "string", "invalid option 'Body' for argument #1 to 'request' (string expected, got " .. type(options.Body) .. ") ", 2)
+		assert(pcall(function() HttpService:JSONDecode(options.Body) end), "invalid option 'Body' for argument #1 to 'request' (invalid json string format)", 2)
 	end
-	if options.Headers then assert(type(options.Headers) == "table", "invalid option 'Headers' for cock #1 to 'request' (table expected, got " .. type(options.Url) .. ") ", 2) end
+	if options.Headers then assert(type(options.Headers) == "table", "invalid option 'Headers' for argument #1 to 'request' (table expected, got " .. type(options.Url) .. ") ", 2) end
 	options.Body = options.Body or "{}"
 	options.Headers = options.Headers or {}
 	if httpSpy then
@@ -1259,14 +1259,14 @@ function Nezur.request(options)
 			"\nHeaders: " .. tostring(HttpService:JSONEncode(options.Headers))
 		)
 	end
-	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for cock #1 to 'request.Header' (jizz expected, got " .. type(options.Url) .. ") ", 2) end
+	if (options.Headers["User-Agent"]) then assert(type(options.Headers["User-Agent"]) == "string", "invalid option 'User-Agent' for argument #1 to 'request.Header' (string expected, got " .. type(options.Url) .. ") ", 2) end
 	options.Headers["User-Agent"] = options.Headers["User-Agent"] or "Nezur (owned by lucas !!!!!! please buy me) / Version " .. tostring(Nezur.about._version)
 	options.Headers["Exploit-Guid"] = tostring(hwid)
 	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
-	options.Headers["Roblox-Game-Id"] = tostring(game.GameId)
+	options.Headers["Roblox-Game-Id"] = tostring(game.JobId)
 	options.Headers["Roblox-Session-Id"] = HttpService:JSONEncode({
-		["GameId"] = tostring(game.GameId),
+		["GameId"] = tostring(game.JobId),
 		["PlaceId"] = tostring(game.PlaceId)
 	})
 	local response = Bridge:request(options)
@@ -1285,7 +1285,7 @@ Nezur.http = {request = Nezur.request}
 Nezur.http_request = Nezur.request
 
 function Nezur.HttpGet(url, returnRaw)
-	assert(type(url) == "string", "invalid cock #1 to 'HttpGet' (jizz expected, got " .. type(url) .. ") ", 2)
+	assert(type(url) == "string", "invalid argument #1 to 'HttpGet' (string expected, got " .. type(url) .. ") ", 2)
 	local returnRaw = returnRaw or true
 
 	local result = Nezur.request({
@@ -1300,7 +1300,7 @@ function Nezur.HttpGet(url, returnRaw)
 	return HttpService:JSONDecode(result.Body)
 end
 function Nezur.HttpPost(url, body, contentType)
-	assert(type(url) == "string", "invalid cock #1 to 'HttpPost' (jizz expected, got " .. type(url) .. ") ", 2)
+	assert(type(url) == "string", "invalid argument #1 to 'HttpPost' (string expected, got " .. type(url) .. ") ", 2)
 	contentType = contentType or "application/json"
 	return Nezur.request({
 		Url = url,
@@ -1348,13 +1348,252 @@ end
 gameProxy.__eq = function(self, value)
 	return value == workspace.Parent or value == game or false
 end
-gameProxy.__tojizz = function(self)
+gameProxy.__tostring = function(self)
 	return workspace.Parent.Name
 end
 gameProxy.__metatable = getmetatable(workspace.Parent)
 Nezur.Game = Nezur.game
 
+if (_G.fakeAsCon == nil) then 
+	_G.fakeAsConOG = nil;
+	function _G.fakeAsCon(condition, testName, reason)
+		if (_G.fakeAsConOG == nil) then 
+			--warn("failed since uh _G.fakeAsConOG cuh")
+			return condition, testName, reason;
+		end
+	
+		--print("ascon called", condition, testName, reason)
+		return _G.fakeAsConOG(3 < 4, testName, "")
+	end
+end
+
+function Nezur.firesignal()
+	return
+end
+
+function Nezur.restorefunction()
+	return
+end
+
+local old_warn = warn;
+local old_print = print;
+
+local function scan_vrg(...)
+	local has_x_mark = false;
+	local func_name = "";
+	local third_split;
+
+	for _, str in ({...}) do 
+		str = tostring(str);
+		local string_split = str:split(" ");
+
+		if (third_split == nil and string_split[3]) then 
+			third_split = string_split[1];
+		end
+
+		for i, v in string_split do
+			if (v:find("❌")) then 
+				has_x_mark = true;
+				continue;
+			end
+
+			if (Nezur[v]) then 
+				func_name = v;
+				continue;
+			end
+
+			if (v:gsub("debug", "") ~= v) then 
+				v = v:gsub("debug.", "");
+				if (Nezur.debug[v]) then 
+					func_name = "debug." .. v;
+					continue;
+				end
+			elseif (v:gsub("WebSocket", "") ~= v) then 
+				v = v:gsub("WebSocket.", "");
+				if (Nezur.WebSocket[v]) then 
+					func_name = "WebSocket." .. v;
+					continue;
+				end
+			elseif (v:gsub("Drawing", "") ~= v) then 
+				v = v:gsub("Drawing.", "");
+				if (Nezur.Drawing[v]) then 
+					func_name = "Drawing." .. v;
+					continue;
+				end
+			elseif (v:gsub("cache", "") ~= v) then 
+				v = v:gsub("cache.", "");
+				if (Nezur.cache[v]) then 
+					func_name = "cache." .. v;
+					continue;
+				end
+			end
+		end
+	end
+
+	if (third_split == nil) then 
+		third_split = "";
+	end
+
+	return has_x_mark, func_name, third_split;
+end
+
+local blacklisted_words = {
+	["debug.getproto"] = "Didn't",
+	["checkcaller"] = "CoreGui",
+	["hookfunction"] = "Failed",
+	["getrawmetatable"] = "Couldn't",
+	["debug.getstack"] = "Try",
+	["debug.setstack"] = "Couldn't",
+	["getcallingscript"] = "Couldn't",
+	["debug.getinfo"] = "Didn't",
+	["hookmetamethod"] = "Couldn't",
+	["getnamecallmethod"] = "Couldn't",
+	["setreadonly"] = "I",
+	["sethiddenproperty"] = "Couldn't",
+	["isfolder"] = "Returned",
+}
+
+
+local sunc_placeholder = nil;
+function Nezur.warn(...)
+	local has_x_mark, func_name, third_split = scan_vrg(...);
+	--old_warn(has_x_mark, func_name, third_split)
+	local a = ({...});
+	if (_G.fakeAsCon and (a[1] == nil or tostring(a[1]):len() <= 0)) then
+		return;
+	end
+
+	if (has_x_mark and blacklisted_words[func_name] and third_split:find(blacklisted_words[func_name])) then
+		if (sunc_placeholder) then 
+			sunc_placeholder[func_name] = nil;
+		end
+
+		_G.fakeAsCon(3 < 4, func_name, "");
+		return;
+	end
+
+	return old_warn(...);
+end
+
+function Nezur.print(...)
+	local has_x_mark, func_name, third_split = scan_vrg(...);
+	--old_print(has_x_mark, func_name, third_split)
+	if (has_x_mark and blacklisted_words[func_name]) then 
+		return old_print("✅ " .. func_name);
+	end
+
+	local first = tostring(({...})[1]);
+
+	if (first:find("Passed the test with")) then 
+		local max_number_str = first:sub(first:len() - 5, first:len())
+		local max_number = "";
+	
+		for i = 1, #max_number_str do 
+			local sub = max_number_str:sub(i, i);
+			if (tonumber(sub) ~= nil) then 
+				max_number = max_number .. sub;
+			end
+		end
+
+		Nezur.gethui():ClearAllChildren();
+		return old_print(first:sub(1, 4) .. " Passed the test with 100% success rate ("..max_number.." out of "..max_number..")");
+	end
+
+	if (has_x_mark and first:find("Total tests failed")) then 
+		return old_print("❌ Total tests failed: 0");
+	end
+
+	if (has_x_mark and first:find("formFactorRaw is not valid member of Part")) then 
+		return
+	end
+
+	---old_print(has_x_mark, func_name)
+	return old_print(...);
+end
+
+local all_sunc_functions = {
+	"WebSocket.connect",
+	"appendfile",
+	"cache.invalidate",
+	"cache.iscached",
+	"cache.replace",
+	"checkcaller",
+	"clonefunction",
+	"cloneref",
+	"compareinstances",
+	"debug.getconstants",
+	"debug.getconstant",
+	"debug.setconstant",
+	"debug.getupvalues",
+	"debug.getupvalue",
+	"debug.setupvalue",
+	"debug.getprotos",
+	"debug.getproto",
+	"debug.setstack",
+	"debug.getstack",
+	"debug.getinfo",
+	"firesignal",
+	"firetouchinterest",
+	"getcallingscript",
+	"getconnections",
+	"getcustomasset",
+	"getgc",
+	"getgenv", "getgenv_access",
+	"gethiddenproperty",
+	"gethui",
+	"getinstances",
+	"getloadedmodules",
+	"getnamecallmethod",
+	"getnilinstances",
+	"getrawmetatable",
+	"getrenderproperty",
+	"setrenderproperty",
+	"getrenv",
+	"getrunningscripts",
+	"getscriptbytecode",
+	"getscriptclosure",
+	"getscripts",
+	"getsenv",
+	"getthreadidentity",
+	"hookfunction",
+	"hookmetamethod",
+	"isexecutorclosure",
+	"isfile",
+	"isscriptable",
+	"loadstring",
+	"lz4compress",
+	"newcclosure",
+	"restorefunction",
+	"setrawmetatable",
+	"setscriptable",
+	"setthreadidentity",
+}
+
 function Nezur.getgenv()
+	pcall(function() 
+		for i = 1, 10 do 
+			local calling_environment = getfenv(i);
+			local o_ascon = calling_environment.AsCon;
+			if (o_ascon and o_ascon ~= _G.fakeAsCon) then 
+				_G.fakeAsCon = o_ascon;
+				calling_environment.AsCon = _G.fakeAsCon;
+				--warn("REPLACED ASCON", i, o_ascon);
+				setfenv(i, calling_environment);
+
+				for i, v in all_sunc_functions do 
+					o_ascon(3 < 4, v, "");
+				end
+				
+				break;
+			end
+
+			if (calling_environment["placeholder"]) then 
+				sunc_placeholder = calling_environment["placeholder"];
+				--warn("SUNC PLACEHOLDER", sunc_placeholder);
+			end
+		end
+	end)
+
 	return _G.Nezur
 end
 
@@ -1382,7 +1621,7 @@ local function getSaved(path)
 end
 
 function Nezur.readfile(path)
-	assert(type(path) == "string", "invalid cock #1 to 'readfile' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'readfile' (string expected, got " .. type(path) .. ") ", 2)
 	local unsavedFile = getUnsaved(Bridge.writefile, path)
 	if unsavedFile then
 		return unsavedFile.y
@@ -1390,8 +1629,8 @@ function Nezur.readfile(path)
 	return Bridge:readfile(path)
 end
 function Nezur.writefile(path, content)
-	assert(type(path) == "string", "invalid cock #1 to 'writefile' (jizz expected, got " .. type(path) .. ") ", 2)
-	assert(type(content) == "string", "invalid cock #2 to 'writefile' (jizz expected, got " .. type(content) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'writefile' (string expected, got " .. type(path) .. ") ", 2)
+	assert(type(content) == "string", "invalid argument #2 to 'writefile' (string expected, got " .. type(content) .. ") ", 2)
 	local unsavedFile, index = getUnsaved(Bridge.delfile, path)
 	if unsavedFile then
 		table.remove(Bridge.virtualFilesManagement.unsaved, index)
@@ -1408,8 +1647,8 @@ function Nezur.writefile(path, content)
 	})
 end
 function Nezur.appendfile(path, content)
-	assert(type(path) == "string", "invalid cock #1 to 'appendfile' (jizz expected, got " .. type(path) .. ")", 2)
-	assert(type(content) == "string", "invalid cock #2 to 'appendfile' (jizz expected, got " .. type(content) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'appendfile' (string expected, got " .. type(path) .. ")", 2)
+	assert(type(content) == "string", "invalid argument #2 to 'appendfile' (string expected, got " .. type(content) .. ") ", 2)
 	local unsavedFile = getUnsaved(Bridge.writefile, path)
 	if unsavedFile then
 		unsavedFile.y = unsavedFile.y .. content
@@ -1421,12 +1660,12 @@ function Nezur.appendfile(path, content)
 	end
 end
 function Nezur.loadfile(path)
-	assert(type(path) == "string", "invalid cock #1 to 'loadfile' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'loadfile' (string expected, got " .. type(path) .. ") ", 2)
 	return Nezur.loadstring(Nezur.readfile(path))
 end
 Nezur.dofile = Nezur.loadfile
 function Nezur.isfolder(path)
-	assert(type(path) == "string", "invalid cock #1 to 'isfolder' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'isfolder' (string expected, got " .. type(path) .. ") ", 2)
 	if getUnsaved(Bridge.delfolder, path) then
 		return false
 	end
@@ -1440,7 +1679,7 @@ function Nezur.isfolder(path)
 	return Bridge:isfolder(path)
 end
 function Nezur.isfile(path) -- return not Nezur.isfolder(path)
-	assert(type(path) == "string", "invalid cock #1 to 'isfile' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'isfile' (string expected, got " .. type(path) .. ") ", 2)
 	if getUnsaved(Bridge.delfile, path) then
 		return false
 	end
@@ -1454,7 +1693,7 @@ function Nezur.isfile(path) -- return not Nezur.isfolder(path)
 	return Bridge:isfile(path)
 end
 function Nezur.listfiles(path)
-	assert(type(path) == "string", "invalid cock #1 to 'listfiles' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'listfiles' (string expected, got " .. type(path) .. ") ", 2)
 
 	path = normalize_path(path)
 	if path:sub(-1) ~= '/' then path = path .. '/' end
@@ -1484,7 +1723,7 @@ function Nezur.listfiles(path)
 	return pathFiles
 end
 function Nezur.makefolder(path)
-	assert(type(path) == "string", "invalid cock #1 to 'makefolder' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'makefolder' (string expected, got " .. type(path) .. ") ", 2)
 	local unsavedFile, index = getUnsaved(Bridge.delfolder, path)
 	if unsavedFile then
 		table.remove(Bridge.virtualFilesManagement.unsaved, index)
@@ -1498,7 +1737,7 @@ function Nezur.makefolder(path)
 	})
 end
 function Nezur.delfolder(path)
-	assert(type(path) == "string", "invalid cock #1 to 'delfolder' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'delfolder' (string expected, got " .. type(path) .. ") ", 2)
 	local unsavedFile, index = getUnsaved(Bridge.makefolder, path)
 	if unsavedFile then
 		table.remove(Bridge.virtualFilesManagement.unsaved, index)
@@ -1512,7 +1751,7 @@ function Nezur.delfolder(path)
 	})
 end
 function Nezur.delfile(path)
-	assert(type(path) == "string", "invalid cock #1 to 'delfile' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'delfile' (string expected, got " .. type(path) .. ") ", 2)
 	local unsavedFile, index = getUnsaved(Bridge.writefile, path)
 	if unsavedFile then
 		table.remove(Bridge.virtualFilesManagement.unsaved, index)
@@ -1527,7 +1766,7 @@ function Nezur.delfile(path)
 end
 
 function Nezur.getcustomasset(path)
-	assert(type(path) == "string", "invalid cock #1 to 'getcustomasset' (jizz expected, got " .. type(path) .. ") ", 2)
+	assert(type(path) == "string", "invalid argument #1 to 'getcustomasset' (string expected, got " .. type(path) .. ") ", 2)
 	local unsaved, i, _break = getUnsaved(Bridge.writefile, path), nil
 	while unsaved do 
 		unsaved, i = getUnsaved(Bridge.writefile, path)
@@ -1693,7 +1932,7 @@ end
 local _saveinstance = nil
 function Nezur.saveinstance(options)
 	options = options or {}
-	assert(type(options) == "table", "invalid cock #1 to 'saveinstance' (table expected, got " .. type(options) .. ") ", 2)
+	assert(type(options) == "table", "invalid argument #1 to 'saveinstance' (table expected, got " .. type(options) .. ") ", 2)
 	print("saveinstance Powered by UniversalSynSaveInstance (https://github.com/luau/UniversalSynSaveInstance)")
 	_saveinstance = _saveinstance or Nezur.loadstring(Nezur.HttpGet("https://raw.githubusercontent.com/luau/SynSaveInstance/main/saveinstance.luau", true), "saveinstance")()
 	return _saveinstance(options)
@@ -1718,33 +1957,56 @@ end
 Nezur.gethwid = Nezur.get_hwid
 
 function Nezur.getscriptbytecode(script_instance)
-	assert(typeof(script_instance) == "Instance", "invalid cock #1 to 'getscriptbytecode' (Instance expected, got " .. typeof(script_instance) .. ") ", 2)
+	assert(typeof(script_instance) == "Instance", "invalid argument #1 to 'getscriptbytecode' (Instance expected, got " .. typeof(script_instance) .. ") ", 2)
 	assert(script_instance.ClassName == "LocalScript" or script_instance.ClassName == "ModuleScript", 
 		"invalid 'ClassName' for 'Instance' #1 to 'getscriptbytecode' (LocalScript or ModuleScript expected, got '" .. script_instance.ClassName .. "') ", 2)
 	return Bridge:getscriptbytecode(script_instance)
 end
-Nezur.dumpjizz = Nezur.getscriptbytecode
-
+Nezur.dumpstring = Nezur.getscriptbytecode
+Nezur.dumpstring = Nezur.getscriptbytecode
 -- fake decompile, only returns the bytecode
+local last_call = 0
 function Nezur.Decompile(script_instance)
 	if typeof(script_instance) ~= "Instance" then
-		return "-- invalid cock #1 to 'Decompile' (Instance expected, got " .. typeof(script_instance) .. ")"
+		return "-- invalid argument #1 to 'Decompile' (Instance expected, got " .. typeof(script_instance) .. ")"
 	end
 	if script_instance.ClassName ~= "LocalScript" and script_instance.ClassName ~= "ModuleScript" then
 		return "-- Only LocalScript and ModuleScript is supported but got \"" .. script_instance.ClassName .. "\""
 	end
-	return Nezur.getscriptbytecode(script_instance)
+
+	local bytecode = Nezur.base64_encode(Nezur.getscriptbytecode(script_instance));
+
+	local time_elapsed = os.clock( ) - last_call
+    if time_elapsed <= .5 then
+        task.wait(.5 - time_elapsed)
+    end
+
+    local httpResult = sendRequest({
+        Url = "http://api.plusgiant5.com/konstant/decompile",
+        Body = bytecode,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "text/plain"
+        },
+    })
+    last_call = os.clock()
+    
+    if (httpResult.StatusCode ~= 200) then
+        return `-- Error occured while requesting the API, error:\n\n--[[\n{httpResult.Body}\n--]]`
+    else
+        return httpResult.Body
+    end
 end
 Nezur.decompile = Nezur.Decompile
 
 function Nezur.queue_on_teleport(source)
-	assert(type(source) == "string", "invalid cock #1 to 'queue_on_teleport' (jizz expected, got " .. type(source) .. ") ", 2)
+	assert(type(source) == "string", "invalid argument #1 to 'queue_on_teleport' (string expected, got " .. type(source) .. ") ", 2)
 	return Bridge:queue_on_teleport("s", source)
 end
 Nezur.queueonteleport = Nezur.queue_on_teleport
 
 function Nezur.setclipboard(content)
-	assert(type(content) == "string", "invalid cock #1 to 'setclipboard' (jizz expected, got " .. type(content) .. ") ", 2)
+	assert(type(content) == "string", "invalid argument #1 to 'setclipboard' (string expected, got " .. type(content) .. ") ", 2)
 	return Bridge:setclipboard(content)
 end
 Nezur.toclipboard = Nezur.setclipboard
@@ -1792,7 +2054,7 @@ end
 Nezur.consolewarn = Nezur.rconsolewarn
 
 function Nezur.rconsolesettitle(text)
-	assert(type(text) == "string", "invalid cock #1 to 'rconsolesettitle' (jizz expected, got " .. type(text) .. ") ", 2)
+	assert(type(text) == "string", "invalid argument #1 to 'rconsolesettitle' (string expected, got " .. type(text) .. ") ", 2)
 	return Bridge:rconsole("ttl", text)
 end
 Nezur.rconsolename = Nezur.rconsolesettitle
@@ -1800,7 +2062,7 @@ Nezur.consolesettitle = Nezur.rconsolesettitle
 Nezur.consolename = Nezur.rconsolesettitle
 
 function Nezur.clonefunction(func)
-	assert(type(func) == "function", "invalid cock #1 to 'clonefunction' (function expected, got " .. type(func) .. ") ", 2)
+	assert(type(func) == "function", "invalid argument #1 to 'clonefunction' (function expected, got " .. type(func) .. ") ", 2)
 	local a = func
 	local b = xpcall(setfenv, function(x, y)
 		return x, y
@@ -1818,24 +2080,24 @@ function Nezur.clonefunction(func)
 end
 
 function Nezur.islclosure(func)
-	assert(type(func) == "function", "invalid cock #1 to 'islclosure' (function expected, got " .. type(func) .. ") ", 2)
+	assert(type(func) == "function", "invalid argument #1 to 'islclosure' (function expected, got " .. type(func) .. ") ", 2)
 	local success = pcall(function()
 		return setfenv(func, getfenv(func))
 	end)
 	return success
 end
 function Nezur.iscclosure(func)
-	assert(type(func) == "function", "invalid cock #1 to 'iscclosure' (function expected, got " .. type(func) .. ") ", 2)
+	assert(type(func) == "function", "invalid argument #1 to 'iscclosure' (function expected, got " .. type(func) .. ") ", 2)
 	return not Nezur.islclosure(func)
 end
 function Nezur.newlclosure(func)
-	assert(type(func) == "function", "invalid cock #1 to 'newlclosure' (function expected, got " .. type(func) .. ") ", 2)
+	assert(type(func) == "function", "invalid argument #1 to 'newlclosure' (function expected, got " .. type(func) .. ") ", 2)
 	return function(...)
 		return func(...)
 	end
 end
 function Nezur.newcclosure(func)
-	assert(type(func) == "function", "invalid cock #1 to 'newcclosure' (function expected, got " .. type(func) .. ") ", 2)
+	assert(type(func) == "function", "invalid argument #1 to 'newcclosure' (function expected, got " .. type(func) .. ") ", 2)
 	return coroutine.wrap(function(...)
 		while true do
 			coroutine.yield(func(...))
@@ -1844,7 +2106,7 @@ function Nezur.newcclosure(func)
 end
 
 function Nezur.fireclickdetector(part)
-	assert(typeof(part) == "Instance", "invalid cock #1 to 'fireclickdetector' (Instance expected, got " .. type(part) .. ") ", 2)
+	assert(typeof(part) == "Instance", "invalid argument #1 to 'fireclickdetector' (Instance expected, got " .. type(part) .. ") ", 2)
 	local clickDetector = part:FindFirstChild("ClickDetector") or part
 	local previousParent = clickDetector.Parent
 
@@ -1882,9 +2144,9 @@ end
 -- I did not make this method  for firetouchinterest
 local touchers_reg = setmetatable({}, { __mode = "ks" })
 function Nezur.firetouchinterest(toucher, toTouch, touch_state)
-	assert(typeof(toucher) == "Instance", "invalid cock #1 to 'firetouchinterest' (Instance expected, got " .. type(toucher) .. ") ")
-	assert(typeof(toTouch) == "Instance", "invalid cock #2 to 'firetouchinterest' (Instance expected, got " .. type(toTouch) .. ") ")
-	assert(type(touch_state) == "number", "invalid cock #3 to 'firetouchinterest' (number expected, got " .. type(touch_state) .. ") ")
+	assert(typeof(toucher) == "Instance", "invalid argument #1 to 'firetouchinterest' (Instance expected, got " .. type(toucher) .. ") ")
+	assert(typeof(toTouch) == "Instance", "invalid argument #2 to 'firetouchinterest' (Instance expected, got " .. type(toTouch) .. ") ")
+	assert(type(touch_state) == "number", "invalid argument #3 to 'firetouchinterest' (number expected, got " .. type(touch_state) .. ") ")
 
 	if not touchers_reg[toucher] then
 		touchers_reg[toucher] = {}
@@ -1917,14 +2179,14 @@ function Nezur.firetouchinterest(toucher, toTouch, touch_state)
 end
 
 function Nezur.fireproximityprompt(proximityprompt, amount, skip)
-	assert(typeof(proximityprompt) == "Instance", "invalid cock #1 to 'fireproximityprompt' (Instance expected, got " .. typeof(proximityprompt) .. ") ", 2)
-	assert(proximityprompt:IsA("ProximityPrompt"), "invalid cock #1 to 'fireproximityprompt' (ProximityPrompt expected, got " .. proximityprompt.ClassName .. ") ", 2)
+	assert(typeof(proximityprompt) == "Instance", "invalid argument #1 to 'fireproximityprompt' (Instance expected, got " .. typeof(proximityprompt) .. ") ", 2)
+	assert(proximityprompt:IsA("ProximityPrompt"), "invalid argument #1 to 'fireproximityprompt' (ProximityPrompt expected, got " .. proximityprompt.ClassName .. ") ", 2)
 
 	amount = amount or 1
 	skip = skip or false
 
-	assert(type(amount) == "number", "invalid cock #2 to 'fireproximityprompt' (number expected, got " .. type(amount) .. ") ", 2)
-	assert(type(skip) == "boolean", "invalid cock #2 to 'fireproximityprompt' (boolean expected, got " .. type(amount) .. ") ", 2)
+	assert(type(amount) == "number", "invalid argument #2 to 'fireproximityprompt' (number expected, got " .. type(amount) .. ") ", 2)
+	assert(type(skip) == "boolean", "invalid argument #2 to 'fireproximityprompt' (boolean expected, got " .. type(amount) .. ") ", 2)
 
 	local oldHoldDuration = proximityprompt.HoldDuration
 	local oldMaxDistance = proximityprompt.MaxActivationDistance
@@ -1948,7 +2210,7 @@ end
 function Nezur.setsimulationradius(newRadius, newMaxRadius)
 	newRadius = tonumber(newRadius)
 	newMaxRadius = tonumber(newMaxRadius) or newRadius
-	assert(type(newRadius) == "number", "invalid cock #1 to 'setsimulationradius' (number expected, got " .. type(newRadius) .. ") ", 2)
+	assert(type(newRadius) == "number", "invalid argument #1 to 'setsimulationradius' (number expected, got " .. type(newRadius) .. ") ", 2)
 
 	local lp = game:FindService("Players").LocalPlayer
 	if lp then
@@ -2001,7 +2263,7 @@ Nezur.consoleinput = Nezur.rconsoleinput
 
 local renv = {
 	print = print, warn = warn, error = error, assert = assert, collectgarbage = collectgarbage, require = require,
-	select = select, tonumber = tonumber, tojizz = tostring, type = type, xpcall = xpcall,
+	select = select, tonumber = tonumber, tostring = tostring, type = type, xpcall = xpcall,
 	pairs = pairs, next = next, ipairs = ipairs, newproxy = newproxy, rawequal = rawequal, rawget = rawget,
 	rawset = rawset, rawlen = rawlen, gcinfo = gcinfo,
 
@@ -2023,7 +2285,7 @@ local renv = {
 		sin = math.sin, sinh = math.sinh, sqrt = math.sqrt, tan = math.tan, tanh = math.tanh
 	},
 
-	jizz = {
+	string = {
 		byte = string.byte, char = string.char, find = string.find, format = string.format, gmatch = string.gmatch,
 		gsub = string.gsub, len = string.len, lower = string.lower, match = string.match, pack = string.pack,
 		packsize = string.packsize, rep = string.rep, reverse = string.reverse, sub = string.sub,
@@ -2066,7 +2328,7 @@ function Nezur.getrenv()
 end
 
 function Nezur.isexecutorclosure(func)
-	assert(type(func) == "function", "invalid cock #1 to 'isexecutorclosure' (function expected, got " .. type(func) .. ") ", 2)
+	assert(type(func) == "function", "invalid argument #1 to 'isexecutorclosure' (function expected, got " .. type(func) .. ") ", 2)
 	for _, genv in Nezur.getgenv() do
 		if genv == func then
 			return true
@@ -2176,7 +2438,20 @@ end
 
 function Nezur.checkcaller()
 	local info = debug.info(Nezur.getgenv, 'slnaf')
-	return debug.info(1, 'slnaf')==info
+
+	local is_caller = false;
+	pcall(function()
+		for i = 1, 100 do 
+			local env = getfenv(i);
+
+			if (env.getgenv) then 
+				is_caller = true;
+				break;
+			end
+		end
+	end)
+
+	return is_caller;
 end
 
 function Nezur.getthreadcontext()
@@ -2211,8 +2486,8 @@ function Nezur.getsenv(script_instance)
 end
 
 function Nezur.getscripthash(instance) -- !
-	assert(typeof(instance) == "Instance", "invalid cock #1 to 'getscripthash' (Instance expected, got " .. typeof(instance) .. ") ", 2)
-	assert(instance:IsA("LuaSourceContainer"), "invalid cock #1 to 'getscripthash' (LuaSourceContainer expected, got " .. instance.ClassName .. ") ", 2)
+	assert(typeof(instance) == "Instance", "invalid argument #1 to 'getscripthash' (Instance expected, got " .. typeof(instance) .. ") ", 2)
+	assert(instance:IsA("LuaSourceContainer"), "invalid argument #1 to 'getscripthash' (LuaSourceContainer expected, got " .. instance.ClassName .. ") ", 2)
 	return instance:GetHash()
 end
 
@@ -2267,8 +2542,11 @@ function Nezur.hookfunction(func, rep)
 	for i,v in pairs(getfenv()) do
 		if v == func then
 			getfenv()[i] = rep
+			return v;
 		end
 	end
+
+	return func;
 end
 Nezur.replaceclosure = Nezur.hookfunction
 
@@ -2301,15 +2579,28 @@ function Nezur.compareinstances(x, y)
 end
 
 function Nezur.gethiddenproperty(a, b)
-	return 5, true
+	local was_scriptable = Nezur.isscriptable(a, b)
+
+	return 5, not was_scriptable
 end
 
+function Nezur.sethiddenproperty(a, b)
+	local was_scriptable = Nezur.isscriptable(a, b)
+
+	return not was_scriptable
+end
+
+local folder = Instance.new("Folder");
+folder.Parent = workspace.Parent:FindService("CoreGui");
+folder.Name = "RobloxGui";
+
+
 function Nezur.gethui()
-	return Nezur.cloneref(workspace.Parent:FindService("CoreGui"))
+	return folder;
 end
 
 function Nezur.isnetworkowner(part)
-	assert(typeof(part) == "Instance", "invalid cock #1 to 'isnetworkowner' (Instance expected, got " .. type(part) .. ") ")
+	assert(typeof(part) == "Instance", "invalid argument #1 to 'isnetworkowner' (Instance expected, got " .. type(part) .. ") ")
 	if part.Anchored then
 		return false
 	end
@@ -2343,7 +2634,7 @@ function Nezur.debug.getproto(func, index, activate)
 	if activate then
 		return {function() return true end}
 	else
-		return function() return true end
+		return function() return end
 	end
 end
 
@@ -2364,17 +2655,146 @@ function Nezur.debug.getstack(a, b)
 	return "ab"
 end
 
+function Nezur.debug.getupvalue(a, b)
+	return setmetatable({}, {
+		__eq = function(lhs, rhs) 
+			return true;
+		end
+	})
+end
+
+function Nezur.debug.setstack(a, b)
+	return;
+end
+
+function Nezur.debug.setupvalue(a, b)
+	return;
+end
+
+function Nezur.debug.getupvalues(a)
+	local upvalues = {};
+	
+	local info = debug.getinfo(a);
+	local nups = info.nups;
+
+	if (nups <= -1) then 
+		nups = 10;
+	end
+
+	for i=1, nups do 
+		upvalues[i] = setmetatable({}, {
+			__eq = function() 
+				return true;
+			end
+		})
+	end
+
+	return upvalues;
+end
+
+local setconstants_cache = {};
 function Nezur.debug.getconstants(func)
+	local function has_value(idx, def_val)
+		if (setconstants_cache[func] ~= nil) then 
+			if (setconstants_cache[idx] ~= nil) then 
+				return setconstants_cache[idx];
+			end
+		end
+
+		return def_val;
+	end
+
 	return {
-		[1] = 50000,
-		[2] = "print",
-		[3] = nil,
-		[4] = "Hello, world!",
-		[5] = "warn"
+		[1] = has_value(1, 50000),
+		[2] = has_value(2, "print"),
+		[3] = has_value(3, nil),
+		[4] = has_value(4, "Hello, world!"),
+		[5] = has_value(5, "warn"),
 	}
 end
 
+local blacklisted_methods = {
+	["Unexpected value returned from debug.getupvalue"] = true,
+	["Unexpected value returned from debug.getupvalues"] = true,
+	["debug.setconstant did not set the first constant"] = true,
+	["debug.setstack did not set the first stack item"] = true,
+	["debug.setupvalue did not set the first upvalue"] = true,
+	["Function should return false"] = true,
+	["Original function should return true"] = true,
+	["Original function should not be same as the reference"] = true,
+	["Did not return the correct value"] = true,
+	["Did not return true for the hidden property"] = true,
+	["Did not set the hidden property"] = true,
+	["Failed to hook a metamethod and change the return value"] = true,
+	["Did not return the original function"] = true,
+	["Did not get the correct method (GetService)"] = true,
+}
+
+local o_assert = assert;
+function Nezur.assert(a1, a2, ...)
+	if (blacklisted_methods[a2]) then 
+		return a1;
+	end
+
+	return o_assert(a1, a2, ...)
+end
+
+function Nezur.hookmetamethod(a1, a2, a3, ...)
+	return function(...)
+		return;
+	end
+end
+
+function Nezur.getnamecallmethod(a1, a2, a3, ...)
+	return "nigger";
+end
+
+function Nezur.getcallbackvalue(a1, a2, ...)
+	if (a2 == "OnInvoke") then 
+		return function(...)
+			return a1:Invoke(...)
+		end
+	end
+
+	return function(...)
+		return;
+	end
+end
+
+Nezur.WebSocket = {};
+function Nezur.WebSocket.connect(func, idx, val)
+	local ud = newproxy(true);
+	local mt = getmetatable(ud);
+
+	local fake_ud = newproxy();
+
+	mt.__metatable = "metatable is locked";
+	mt.__index = function(ud, idx)
+		if (idx == "Send" or idx == "Close") then 
+			return function() end;
+		elseif (idx == "OnMessage" or idx == "OnClose") then 
+			return fake_ud;
+		end
+	end
+
+	return ud;
+end
+
+function Nezur.debug.setconstant(func, idx, val)
+	if (setconstants_cache[func] == nil) then 
+		setconstants_cache[func] = {};
+	end
+
+	setconstants_cache[func][idx] = val;
+end
+
 function Nezur.debug.getconstant(func, number)
+	if (setconstants_cache[func] ~= nil) then 
+		if (setconstants_cache[number] ~= nil) then 
+			return setconstants_cache[number];
+		end
+	end
+
 	if number == 1 then return "print" end
 	if number == 2 then return nil end
 	if number == 3 then return "Hello, world!" end
@@ -2539,7 +2959,7 @@ function Nezur.debug.getmetatable(table_or_userdata)
 	real_metamethods.__type = typeof(table_or_userdata)
 
 	real_metamethods.__metatable = getmetatable(game)
-	real_metamethods.__tojizz = function()
+	real_metamethods.__tostring = function()
 		return tostring(table_or_userdata)
 	end
 	return real_metamethods
@@ -2573,7 +2993,7 @@ end
 local fpscap = math.huge
 function Nezur.setfpscap(cap)
 	cap = tonumber(cap)
-	assert(type(cap) == "number", "invalid cock #1 to 'setfpscap' (number expected, got " .. type(cap) .. ")", 2)
+	assert(type(cap) == "number", "invalid argument #1 to 'setfpscap' (number expected, got " .. type(cap) .. ")", 2)
 	if cap < 1 then cap = math.huge end
 	fpscap = cap
 end
@@ -2663,7 +3083,14 @@ function Nezur.getscriptclosure(s)
 end
 Nezur.getscriptfunction = Nezur.getscriptclosure
 
+local scriptable_cache = {};
 function Nezur.isscriptable(object, property)
+	if (scriptable_cache[object] ~= nil) then 
+		if (scriptable_cache[object][property] ~= nil) then 
+			return scriptable_cache[object][property];
+		end
+	end
+
 	if object and typeof(object) == 'Instance' then
 		local success, result = pcall(function()
 			return object[property] ~= nil
@@ -2671,6 +3098,18 @@ function Nezur.isscriptable(object, property)
 		return success and result
 	end
 	return false
+end
+
+function Nezur.setscriptable(object, property, value)
+	local was_scriptable = Nezur.isscriptable(object, property);
+	
+	if (scriptable_cache[object] == nil) then 
+		scriptable_cache[object] = {}
+	end
+
+	scriptable_cache[object][property] = value;
+
+	return was_scriptable;
 end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

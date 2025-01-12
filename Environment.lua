@@ -488,7 +488,7 @@ local cached_protected_services = { }
 _G.Nezur = Nezur
 
 if script.Name == "VRNavigation" then
-    warn("[NEZUR] Initialized made by lucas nezur owner 5+ years C++ 😘")
+    warn("[NEZUR] Initialized. Developed by 1Cheats.com.");
 end
 
 local lookupValueToCharacter = buffer.create(64)
@@ -1054,8 +1054,8 @@ function Bridge:queue_on_teleport(_type, source)
 	end
 	return ''
 end
------------------------------------------------------------------------------
------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 task.spawn(function()
 	while true do
@@ -1264,9 +1264,9 @@ function Nezur.request(options)
 	options.Headers["Exploit-Guid"] = tostring(hwid)
 	options.Headers["Nezur-Fingerprint"] = tostring(hwid)
 	options.Headers["Roblox-Place-Id"] = tostring(game.PlaceId)
-	options.Headers["Roblox-Game-Id"] = tostring(game.JobId)
+	options.Headers["Roblox-Game-Id"] = tostring(game.GameId)
 	options.Headers["Roblox-Session-Id"] = HttpService:JSONEncode({
-		["GameId"] = tostring(game.JobId),
+		["GameId"] = tostring(game.GameId),
 		["PlaceId"] = tostring(game.PlaceId)
 	})
 	local response = Bridge:request(options)

@@ -41,15 +41,15 @@ end
 local libs = {
 	{
 		['name'] = "HashLib",
-		['url'] = "https://pastebinp.com/raw/PfzWRgqf"
+		['url'] = "https://pastebin.com/raw/PfzWRgqf"
 	},
 	{
 		['name'] = "lz4",
-		['url'] = "https://pastebinp.com/raw/TDx5kkUV"
+		['url'] = "https://pastebin.com/raw/TDx5kkUV"
 	},
 	{
 		['name'] = "DrawingLib",
-		['url'] = "https://pastebinp.com/raw/p9ixiaDf"
+		['url'] = "https://pastebin.com/raw/p9ixiaDf"
 	}
 }
 
